@@ -4,14 +4,11 @@ file="VERSION.txt"
 
 version=$(cat "$file")
 
-while getopts ":Mmp" Option
-do
-  case $Option in
-    M ) major=true;;
-    m ) minor=true;;
-    p ) patch=true;;
-  esac
-done
+case $VERSION in
+  M|major ) major=true;;
+  m|minor ) minor=true;;
+  p|patch ) patch=true;;
+esac
 
 shift $(($OPTIND - 1))
 
@@ -43,8 +40,8 @@ fi
 
 newVersion="${a[0]}.${a[1]}.${a[2]}"
 
-echo $newVersion
+echo $newVersion - $MESSAGE
 
 echo $newVersion > $file
 
-# sed -d "s/version '[0-9]*.[0-9]*.[0-9]*'/version '$newVersion'/g" metadata.rb
+# sed -i "s/version '[0-9]*.[0-9]*.[0-9]*'/version '$newVersion'/g" metadata.rb
