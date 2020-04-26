@@ -6,7 +6,7 @@ version=$(cat "$file")
 
 git add $file
 
-if [ ! -z $MESSAGE ]
+if [ ! -z "$MESSAGE" ]
 then
     git commit -m "$version - $MESSAGE"
 else
