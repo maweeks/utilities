@@ -5,9 +5,9 @@ file="VERSION.txt"
 version=$(cat "$file")
 
 case $VERSION in
-  M|major ) major=true;;
-  m|minor ) minor=true;;
-  p|patch ) patch=true;;
+    M|major ) major=true;;
+    m|minor ) minor=true;;
+    p|patch ) patch=true;;
 esac
 
 shift $(($OPTIND - 1))
@@ -16,26 +16,26 @@ a=( ${version//./ } )
 
 if [ ${#a[@]} -ne 3 ]
 then
-  echo "usage: $(basename $0) [-Mmp] major.minor.patch"
-  exit 1
+    echo "usage: $(basename $0) [-Mmp] major.minor.patch"
+    exit 1
 fi
 
 if [ ! -z $major ]
 then
-  ((a[0]++))
-  a[1]=0
-  a[2]=0
+    ((a[0]++))
+    a[1]=0
+    a[2]=0
 fi
 
 if [ ! -z $minor ]
 then
-  ((a[1]++))
-  a[2]=0
+    ((a[1]++))
+    a[2]=0
 fi
 
 if [ ! -z $patch ]
 then
-  ((a[2]++))
+    ((a[2]++))
 fi
 
 newVersion="${a[0]}.${a[1]}.${a[2]}"
@@ -43,5 +43,3 @@ newVersion="${a[0]}.${a[1]}.${a[2]}"
 echo $newVersion - $MESSAGE
 
 echo $newVersion > $file
-
-# sed -i "s/version '[0-9]*.[0-9]*.[0-9]*'/version '$newVersion'/g" metadata.rb
