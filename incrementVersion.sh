@@ -40,6 +40,13 @@ fi
 
 newVersion="${a[0]}.${a[1]}.${a[2]}"
 
-echo $newVersion - $MESSAGE
+
+
+if [ ! -z "$MESSAGE" ]
+then
+    echo $newVersion - $MESSAGE
+else
+    echo $newVersion
+fi
 
 echo $newVersion > $file

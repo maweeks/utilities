@@ -8,3 +8,9 @@ Current scripts:
   - `incrementVersion.sh -M` - increment major value
   - `incrementVersion.sh -m` - increment minor value
   - `incrementVersion.sh -p` - increment patch value
+- `releaseWithGit.sh` - commit, tag and push to git origin
+  - `releaseWithGit.sh MESSAGE='Commit message'` - release with commit message
+
+## To do
+
+- `incrementPackageJsonVersion.sh`
