@@ -9,8 +9,7 @@ Current scripts:
   - `incrementVersion.sh -m` - increment minor value
   - `incrementVersion.sh -p` - increment patch value
 - `releaseWithGit.sh` - commit, tag and push to git origin
+
   - `releaseWithGit.sh MESSAGE='Commit message'` - release with commit message
 
-## To do
-
-- `incrementPackageJsonVersion.sh`
+- `NpmRelease.mk` - `make major`, `make minor`, `make patch` for npm tagging
