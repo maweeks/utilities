@@ -1,3 +1,7 @@
+.PHONY: help major minor patch prepareDevelop pullRequest
+
+REPOSITORY_NAME := $(shell basename -s .git $(shell git config --get remote.origin.url))
+
 help:          ## Show this help.
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
 
@@ -26,4 +30,4 @@ prepareDevelop: ## Merge latest master into latest deveop branch
 pullRequest:    ## Push release and open PR URL
 	@git push && \
 	git push --tags && \
-	open https://github.com/maweeks/test-utilities/compare/master...develop
+	open https://github.com/maweeks/$(REPOSITORY_NAME)/compare/master...develop
