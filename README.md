@@ -2,14 +2,16 @@
 
 A repository for random scripts and other utilities.
 
-Current scripts:
+Current utilities:
 
-- `incrementVersion.sh` - increment the version number in VERSION file
-  - `incrementVersion.sh -M` - increment major value
-  - `incrementVersion.sh -m` - increment minor value
-  - `incrementVersion.sh -p` - increment patch value
-- `releaseWithGit.sh` - commit, tag and push to git origin
+- `awsSecurityGroupIpUpdater` - update your IP on an EC2 Security Group e.g. for Bastion
+- `versionIncrementor` - increment version using semantic versioning with or without npm
 
-  - `releaseWithGit.sh MESSAGE='Commit message'` - release with commit message
+Coming soon:
 
-- `NpmRelease.mk` - `make major`, `make minor`, `make patch` for npm tagging
+Readme update:
+
+- `awsSecurityGroupIpUpdater` - update your IP on an EC2 Security Group e.g. for Bastion
+- `versionIncrementor` - increment version using semantic versioning with or without npm
+
+- `automatedReleaseNotes` - get a list of tickets and pull request numbers from the git history and generate release notes
