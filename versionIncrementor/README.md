@@ -2,6 +2,7 @@
 
 ## Current scripts
 
+- `checkVersionDeployed.sh` - keep checking that the expected version is deployed
 - `incrementVersion.sh` - increment the version number in VERSION file
   - `incrementVersion.sh -M` - increment major value
   - `incrementVersion.sh -m` - increment minor value
