@@ -11,7 +11,7 @@ CODE_PREFIXES = ["ASDF", "QWER", "ZXCV"]
 CODE_REGEX = "|".join(code + "-[0-9]+" for code in CODE_PREFIXES)
 README_SECTIONS = ["Features", "Fixes", "Tickets", "Other"]
 
-LOG_REQUESTS = False
+LOG_RESPONSES = False
 
 PR_REPOSITORY = str(sys.argv[1])
 PR_ISSUE_NUMBER = str(sys.argv[2])
@@ -83,6 +83,18 @@ def getPrCommits(issueNumber):
     ).json()
 
 
+def getCreateReleaseUrl():
+    return "https://api.github.com/repos/{0}/{1}/releases".format(
+        DEFAULT_REPO_OWNER, PR_REPOSITORY
+    )
+
+
+def getPrUrl():
+    return "https://api.github.com/repos/{0}/{1}/issues/{2}".format(
+        DEFAULT_REPO_OWNER, PR_REPOSITORY, PR_ISSUE_NUMBER
+    )
+
+
 def addTicketsToTickets(newTickets):
     for newTicket in newTickets:
         if newTicket in tickets:
@@ -108,7 +120,7 @@ def getTicketDetails(ticket):
 
 def getUpdatedPrLabels(existingPrJson):
     labels = []
-    if LOG_REQUESTS:
+    if LOG_RESPONSES:
         print("Old PR response:")
         print(existingPrJson)
 
@@ -134,29 +146,21 @@ if CREATE_GITHUB_RELEASE:
         "prerelease": False,
     }
 
-    try:
-        if DRY_RUN:
-            print("DRY RUN: Create release request:")
-            print(
-                "https://api.github.com/repos/maweeks/{0}/releases".format(
-                    PR_REPOSITORY
-                )
-            )
-            print(json.dumps(data))
-        else:
+    if DRY_RUN:
+        print("DRY RUN: Create release request:")
+        print(getCreateReleaseUrl())
+        print(json.dumps(data))
+    else:
+        try:
             createRelease = requests.post(
-                "https://api.github.com/repos/maweeks/{0}/releases".format(
-                    PR_REPOSITORY
-                ),
-                auth=GITHUB_CREDENTIALS,
-                data=json.dumps(data),
+                getCreateReleaseUrl(), auth=GITHUB_CREDENTIALS, data=json.dumps(data),
             )
-            if LOG_REQUESTS:
+            if LOG_RESPONSES:
                 print("Create release response:")
                 print(createRelease.text)
-    except:
-        print("fail")
-        raise SystemExit(e)
+        except:
+            print("Failed to create release")
+            raise SystemExit(e)
 else:
     print("Skipping create release.")
 
@@ -164,7 +168,12 @@ else:
 ################################################################################
 # Generate release notes
 
-existingPrCommits = getPrCommits(PR_ISSUE_NUMBER)
+existingPrCommits = []
+try:
+    existingPrCommits = getPrCommits(PR_ISSUE_NUMBER)
+except:
+    print("Failed to get main PR commits {0}".format(PR_ISSUE_NUMBER))
+    raise SystemExit(e)
 
 teamcityChange = False
 commits = []
@@ -187,10 +196,16 @@ for commitJSON in existingPrCommits:
 for pr in prs:
     prTickets = getTicketsFromString(pr[1])
 
-    prCommits = getPrCommits(pr[0].split("#")[1])
-    for prCommit in prCommits:
-        prTickets += getTicketsFromString(prCommit["commit"]["message"].split("\n")[0])
-        commits.remove(prCommit["commit"]["message"])
+    try:
+        prCommits = getPrCommits(pr[0].split("#")[1])
+        for prCommit in prCommits:
+            prTickets += getTicketsFromString(
+                prCommit["commit"]["message"].split("\n")[0]
+            )
+            commits.remove(prCommit["commit"]["message"])
+    except:
+        print("Failed to get feature PR commits {0}".format(PR_ISSUE_NUMBER))
+        raise SystemExit(e)
 
     if len(prTickets) == 0:
         readmeData.append(["", [], "Other", pr[1].split("/")[-1]])
@@ -236,12 +251,12 @@ print("##################################################")
 updateLabels = False
 labels = []
 
-existingPr = requests.get(
-    "https://api.github.com/repos/maweeks/{0}/issues/{1}".format(
-        PR_REPOSITORY, PR_ISSUE_NUMBER
-    ),
-    auth=GITHUB_CREDENTIALS,
-).json()
+existingPr = ""
+try:
+    existingPr = requests.get(getPrUrl(), auth=GITHUB_CREDENTIALS,).json()
+except:
+    print("Failed to get existing PR")
+    raise SystemExit(e)
 
 prData = {"labels": getUpdatedPrLabels(existingPr)}
 
@@ -251,23 +266,20 @@ if UPDATE_PR_TEXT:
 
 if DRY_RUN:
     print("DRY RUN: Create release request:")
-    print(
-        "https://api.github.com/repos/maweeks/{0}/issues/{1}".format(
-            PR_REPOSITORY, PR_ISSUE_NUMBER
-        )
-    )
+    print(getPrUrl())
     print(json.dumps(prData))
 else:
-    updatePR = requests.patch(
-        "https://api.github.com/repos/maweeks/{0}/issues/{1}".format(
-            PR_REPOSITORY, PR_ISSUE_NUMBER
-        ),
-        auth=GITHUB_CREDENTIALS,
-        data=json.dumps(prData),
-    )
+    try:
+        updatePR = requests.patch(
+            getPrUrl(), auth=GITHUB_CREDENTIALS, data=json.dumps(prData),
+        )
 
-    if LOG_REQUESTS:
-        print("Update PR response:")
-        print(updatePR.text)
+        if LOG_RESPONSES:
+            print("Update PR response:")
+            print(updatePR.text)
+
+    except:
+        print("Failed to update PR")
+        raise SystemExit(e)
 
 print("Script complete.")
