@@ -118,7 +118,7 @@ def getTicketDetails(ticket):
         return [ticket, tickets[ticket], "Tickets", ""]
 
 
-def getUpdatedPrLabels(existingPrJson):
+def getPrLabels(existingPrJson):
     labels = []
     if LOG_RESPONSES:
         print("Old PR response:")
@@ -126,10 +126,6 @@ def getUpdatedPrLabels(existingPrJson):
 
     for label in existingPrJson["labels"]:
         labels.append(label["name"])
-
-    if LABEL_TO_ADD not in labels:
-        labels.append(LABEL_TO_ADD)
-        updateLabels = True
 
     return labels
 
@@ -160,7 +156,7 @@ if CREATE_GITHUB_RELEASE:
                 print(createRelease.text)
         except:
             print("Failed to create release")
-            raise SystemExit(e)
+            raise SystemExit()
 else:
     print("Skipping create release.")
 
@@ -173,7 +169,7 @@ try:
     existingPrCommits = getPrCommits(PR_ISSUE_NUMBER)
 except:
     print("Failed to get main PR commits {0}".format(PR_ISSUE_NUMBER))
-    raise SystemExit(e)
+    raise SystemExit()
 
 teamcityChange = False
 commits = []
@@ -205,7 +201,7 @@ for pr in prs:
             commits.remove(prCommit["commit"]["message"])
     except:
         print("Failed to get feature PR commits {0}".format(PR_ISSUE_NUMBER))
-        raise SystemExit(e)
+        raise SystemExit()
 
     if len(prTickets) == 0:
         readmeData.append(["", [], "Other", pr[1].split("/")[-1]])
@@ -248,38 +244,44 @@ print("##################################################")
 ################################################################################
 # Update PR
 
-updateLabels = False
-labels = []
-
 existingPr = ""
 try:
     existingPr = requests.get(getPrUrl(), auth=GITHUB_CREDENTIALS,).json()
 except:
     print("Failed to get existing PR")
-    raise SystemExit(e)
+    raise SystemExit()
 
-prData = {"labels": getUpdatedPrLabels(existingPr)}
+prData = {}
+labels = getPrLabels(existingPr)
+
+if LABEL_TO_ADD not in labels:
+    labels.append(LABEL_TO_ADD)
+    prData["labels"] = labels
+
 
 if UPDATE_PR_TEXT:
     prData["title"] = "Release {0}".format(PR_RELEASE)
     prData["body"] = readmeString
 
-if DRY_RUN:
-    print("DRY RUN: Create release request:")
-    print(getPrUrl())
-    print(json.dumps(prData))
+if prData != {}:
+    if DRY_RUN:
+        print("DRY RUN: Create release request:")
+        print(getPrUrl())
+        print(json.dumps(prData))
+    else:
+        try:
+            updatePR = requests.patch(
+                getPrUrl(), auth=GITHUB_CREDENTIALS, data=json.dumps(prData),
+            )
+
+            if LOG_RESPONSES:
+                print("Update PR response:")
+                print(updatePR.text)
+
+        except:
+            print("Failed to update PR")
+            raise SystemExit()
 else:
-    try:
-        updatePR = requests.patch(
-            getPrUrl(), auth=GITHUB_CREDENTIALS, data=json.dumps(prData),
-        )
-
-        if LOG_RESPONSES:
-            print("Update PR response:")
-            print(updatePR.text)
-
-    except:
-        print("Failed to update PR")
-        raise SystemExit(e)
+    print("No PR changes to be made.")
 
 print("Script complete.")
