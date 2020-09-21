@@ -19,7 +19,7 @@ PR_RELEASE = str(sys.argv[3])
 DRY_RUN = "Y" == str(sys.argv[4])
 CREATE_GITHUB_RELEASE = "Y" == str(sys.argv[5])
 UPDATE_PR_TEXT = "Y" == str(sys.argv[6])
-GITHUB_CREDENTIALS = ("maweeks", str(sys.argv[7]))
+GITHUB_CREDENTIALS = str(sys.argv[7])
 TICKET_CREDENTIALS = ("matthew.weeks", str(sys.argv[8]))
 
 
@@ -70,7 +70,9 @@ def getReadmeItemText(item, section):
         if itemString != "":
             itemString = "- " + itemString
         if item[3] != "":
-            itemString += "- {0}\n".format(item[3])
+            itemString += "- {0}".format(item[3])
+        if len(itemString) > 0:
+            itemString += "\n"
     return itemString
 
 
@@ -79,7 +81,7 @@ def getPrCommits(issueNumber):
         "https://api.github.com/repos/{0}/{1}/pulls/{2}/commits".format(
             DEFAULT_REPO_OWNER, PR_REPOSITORY, issueNumber
         ),
-        auth=GITHUB_CREDENTIALS,
+        headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
     ).json()
 
 
@@ -149,7 +151,9 @@ if CREATE_GITHUB_RELEASE:
     else:
         try:
             createRelease = requests.post(
-                getCreateReleaseUrl(), auth=GITHUB_CREDENTIALS, data=json.dumps(data),
+                getCreateReleaseUrl(),
+                headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+                data=json.dumps(data),
             )
             if LOG_RESPONSES:
                 print("Create release response:")
@@ -247,7 +251,9 @@ print("##################################################")
 
 existingPr = ""
 try:
-    existingPr = requests.get(getPrUrl(), auth=GITHUB_CREDENTIALS,).json()
+    existingPr = requests.get(
+        getPrUrl(), headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+    ).json()
 except:
     print("Failed to get existing PR")
     raise SystemExit()
@@ -272,7 +278,9 @@ if prData != {}:
     else:
         try:
             updatePR = requests.patch(
-                getPrUrl(), auth=GITHUB_CREDENTIALS, data=json.dumps(prData),
+                getPrUrl(),
+                headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+                data=json.dumps(prData),
             )
 
             if LOG_RESPONSES:
