@@ -198,7 +198,8 @@ for pr in prs:
             prTickets += getTicketsFromString(
                 prCommit["commit"]["message"].split("\n")[0]
             )
-            commits.remove(prCommit["commit"]["message"])
+            if prCommit["commit"]["message"] in commits:
+                commits.remove(prCommit["commit"]["message"])
     except:
         print("Failed to get feature PR commits {0}".format(PR_ISSUE_NUMBER))
         raise SystemExit()
