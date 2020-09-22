@@ -19,7 +19,7 @@ PR_RELEASE = str(sys.argv[3])
 DRY_RUN = "Y" == str(sys.argv[4])
 CREATE_GITHUB_RELEASE = "Y" == str(sys.argv[5])
 UPDATE_PR_TEXT = "Y" == str(sys.argv[6])
-GITHUB_CREDENTIALS = str(sys.argv[7])
+GITHUB_CREDENTIALS = "token {0}".format(str(sys.argv[7]))
 TICKET_CREDENTIALS = ("matthew.weeks", str(sys.argv[8]))
 
 
@@ -81,7 +81,7 @@ def get_pr_commits(issueNumber):
         "https://api.github.com/repos/{0}/{1}/pulls/{2}/commits".format(
             DEFAULT_REPO_OWNER, PR_REPOSITORY, issueNumber
         ),
-        headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+        headers={"Authorization": GITHUB_CREDENTIALS},
     ).json()
 
 
@@ -146,7 +146,7 @@ def get_pr_labels(existingPrJson):
 def should_include_pr(pr):
     prDetails = requests.get(
         get_pr_url(pr),
-        headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+        headers={"Authorization": GITHUB_CREDENTIALS},
     ).json()
     return (prDetails["head"]["ref"] != "develop") or (
         prDetails["base"]["ref"] == "master"
@@ -173,8 +173,7 @@ if CREATE_GITHUB_RELEASE:
         try:
             createRelease = requests.post(
                 get_create_release_url(),
-                headers={"Authorization": "token {0}".format(
-                    GITHUB_CREDENTIALS)},
+                headers={"Authorization": GITHUB_CREDENTIALS},
                 data=json.dumps(data),
             )
             if LOG_RESPONSES:
@@ -278,7 +277,7 @@ existingPr = ""
 try:
     existingPr = requests.get(
         get_issue_url(),
-        headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+        headers={"Authorization": GITHUB_CREDENTIALS},
     ).json()
 except:
     print("Failed to get existing PR")
@@ -305,8 +304,7 @@ if prData != {}:
         try:
             updatePR = requests.patch(
                 get_issue_url(),
-                headers={"Authorization": "token {0}".format(
-                    GITHUB_CREDENTIALS)},
+                headers={"Authorization": GITHUB_CREDENTIALS},
                 data=json.dumps(prData),
             )
 
