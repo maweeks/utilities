@@ -113,7 +113,7 @@ def getTicketDetails(ticket):
         ).json()
 
         ticketType = "Features"
-        if ticketDetails["fields"]["issuetype"] in ["Bug"]:
+        if ticketDetails["fields"]["issuetype"]["name"] in ["Bug"]:
             ticketType = "Fixes"
         return [ticket, tickets[ticket], ticketType, ticketDetails["fields"]["summary"]]
     except:
@@ -230,7 +230,7 @@ if teamcityChange:
 
 readmeData.sort(key=lambda x: (x[0], x[3]))
 
-readmeString = "{0} {1}:".format(
+readmeString = "{0} {1}:\n".format(
     PR_REPOSITORY.capitalize(), getReleaseMarkdownLink(PR_RELEASE)
 )
 
@@ -239,7 +239,7 @@ for section in README_SECTIONS:
     for item in readmeData:
         sectionString += getReadmeItemText(item, section)
     if sectionString != "":
-        readmeString += "\n\n{0}:\n\n{1}".format(section, sectionString)
+        readmeString += "\n{0}:\n\n{1}".format(section, sectionString)
 
 print("##################################################")
 print(readmeString)
