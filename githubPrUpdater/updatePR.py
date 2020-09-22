@@ -205,7 +205,7 @@ for commitJSON in existingPrCommits:
             prNumber = re.search("#[0-9]+", commit).group()
             branch = commit[len(prNumber) + 24 :]
             prs.append([prNumber, branch])
-        else:
+        elif not commit.startswith("Merge remote-tracking branch"):
             commits.append(commit)
 
 for pr in prs:
