@@ -3,11 +3,11 @@ import re
 import requests
 import sys
 
-DEFAULT_REPO_OWNER = "maweeks"
+DEFAULT_REPO_OWNER = "AssetzSMECapital"
 LABEL_TO_ADD = "release"
 
 TICKET_BASE_URL = "https://bob.atlassian.net/"
-CODE_PREFIXES = ["ASDF", "QWER", "ZXCV"]
+CODE_PREFIXES = ["LENDER", "OPS", "SUP"]
 CODE_REGEX = "|".join(code + "-[0-9]+" for code in CODE_PREFIXES)
 README_SECTIONS = ["Features", "Fixes", "Tickets", "Other"]
 
@@ -205,7 +205,7 @@ for commitJSON in existingPrCommits:
             prNumber = re.search("#[0-9]+", commit).group()
             branch = commit[len(prNumber) + 24 :]
             prs.append([prNumber, branch])
-        else:
+        elif not commit.startswith("Merge remote-tracking branch"):
             commits.append(commit)
 
 for pr in prs:
