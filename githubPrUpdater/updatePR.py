@@ -127,7 +127,7 @@ def get_ticket_details(ticket):
             ticket_type,
             ticket_details["fields"]["summary"]
         ]
-    except:
+    except Exception:
         return [ticket, tickets[ticket], "Tickets", ""]
 
 
@@ -179,7 +179,7 @@ if CREATE_GITHUB_RELEASE:
             if LOG_RESPONSES:
                 print("Create release response:")
                 print(createRelease.text)
-        except:
+        except Exception:
             print("Failed to create release")
             raise SystemExit()
 else:
@@ -192,7 +192,7 @@ else:
 existingPrCommits = []
 try:
     existingPrCommits = get_pr_commits(PR_ISSUE_NUMBER)
-except:
+except Exception:
     print("Failed to get main PR commits {0}".format(PR_ISSUE_NUMBER))
     raise SystemExit()
 
@@ -227,7 +227,7 @@ for pr in prs:
                 )
             if prCommit["commit"]["message"] in commits:
                 commits.remove(prCommit["commit"]["message"])
-    except:
+    except Exception:
         print("Failed to get feature PR commits {0}".format(PR_ISSUE_NUMBER))
         raise SystemExit()
 
@@ -279,7 +279,7 @@ try:
         get_issue_url(),
         headers={"Authorization": GITHUB_CREDENTIALS},
     ).json()
-except:
+except Exception:
     print("Failed to get existing PR")
     raise SystemExit()
 
@@ -312,7 +312,7 @@ if prData != {}:
                 print("Update PR response:")
                 print(updatePR.text)
 
-        except:
+        except Exception:
             print("Failed to update PR")
             raise SystemExit()
 else:
