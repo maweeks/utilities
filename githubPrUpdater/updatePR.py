@@ -91,9 +91,15 @@ def getCreateReleaseUrl():
     )
 
 
-def getPrUrl():
+def getIssueUrl():
     return "https://api.github.com/repos/{0}/{1}/issues/{2}".format(
         DEFAULT_REPO_OWNER, PR_REPOSITORY, PR_ISSUE_NUMBER
+    )
+
+
+def getPrUrl(prNumber):
+    return "https://api.github.com/repos/{0}/{1}/pulls/{2}".format(
+        DEFAULT_REPO_OWNER, PR_REPOSITORY, prNumber
     )
 
 
@@ -130,6 +136,15 @@ def getPrLabels(existingPrJson):
         labels.append(label["name"])
 
     return labels
+
+
+def shouldIncludePr(pr):
+    prDetails = requests.get(
+        getPrUrl(pr), headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+    ).json()
+    return (prDetails["head"]["ref"] != "develop") or (
+        prDetails["base"]["ref"] == "master"
+    )
 
 
 ################################################################################
@@ -195,23 +210,26 @@ for commitJSON in existingPrCommits:
 
 for pr in prs:
     prTickets = getTicketsFromString(pr[1])
-
+    includePr = False
     try:
         prCommits = getPrCommits(pr[0].split("#")[1])
+        includePr = shouldIncludePr(pr[0].split("#")[1])
         for prCommit in prCommits:
-            prTickets += getTicketsFromString(
-                prCommit["commit"]["message"].split("\n")[0]
-            )
+            if includePr:
+                prTickets += getTicketsFromString(
+                    prCommit["commit"]["message"].split("\n")[0]
+                )
             if prCommit["commit"]["message"] in commits:
                 commits.remove(prCommit["commit"]["message"])
     except:
         print("Failed to get feature PR commits {0}".format(PR_ISSUE_NUMBER))
         raise SystemExit()
 
-    if len(prTickets) == 0:
-        readmeData.append(["", [], "Other", pr[1].split("/")[-1]])
-    else:
-        addTicketsToTickets(prTickets)
+    if includePr:
+        if len(prTickets) == 0:
+            readmeData.append(["", [], "Other", pr[1].split("/")[-1]])
+        else:
+            addTicketsToTickets(prTickets)
 
 for commit in commits:
     commitTickets = getTicketsFromString(commit)
@@ -252,7 +270,8 @@ print("##################################################")
 existingPr = ""
 try:
     existingPr = requests.get(
-        getPrUrl(), headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+        getIssueUrl(),
+        headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
     ).json()
 except:
     print("Failed to get existing PR")
@@ -273,12 +292,12 @@ if UPDATE_PR_TEXT:
 if prData != {}:
     if DRY_RUN:
         print("DRY RUN: Create release request:")
-        print(getPrUrl())
+        print(getIssueUrl())
         print(json.dumps(prData))
     else:
         try:
             updatePR = requests.patch(
-                getPrUrl(),
+                getIssueUrl(),
                 headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
                 data=json.dumps(prData),
             )
