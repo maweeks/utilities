@@ -59,27 +59,27 @@ def get_ticket_markdown_link(ticket):
 
 
 def get_readme_item_text(item, section):
-    itemString = ""
+    item_string = ""
     if item[2] == section:
         if len(item[1]) > 0:
             item[1].sort()
             item[1] = ["{0}".format(str(pr)) for pr in item[1]]
-            itemString += str(item[1]).replace("'", "") + " "
+            item_string += str(item[1]).replace("'", "") + " "
         if len(item[0]) > 0:
-            itemString = get_ticket_markdown_link(item[0]) + itemString
-        if itemString != "":
-            itemString = "- " + itemString
+            item_string = get_ticket_markdown_link(item[0]) + item_string
+        if item_string != "":
+            item_string = "- " + item_string
         if item[3] != "":
-            itemString += "- {0}".format(item[3])
-        if len(itemString) > 0:
-            itemString += "\n"
-    return itemString
+            item_string += "- {0}".format(item[3])
+        if len(item_string) > 0:
+            item_string += "\n"
+    return item_string
 
 
-def get_pr_commits(issueNumber):
+def get_pr_commits(issue_number):
     return requests.get(
         "https://api.github.com/repos/{0}/{1}/pulls/{2}/commits".format(
-            DEFAULT_REPO_OWNER, PR_REPOSITORY, issueNumber
+            DEFAULT_REPO_OWNER, PR_REPOSITORY, issue_number
         ),
         headers={"Authorization": GITHUB_CREDENTIALS},
     ).json()
@@ -97,59 +97,59 @@ def get_issue_url():
     )
 
 
-def get_pr_url(prNumber):
+def get_pr_url(pr_number):
     return "https://api.github.com/repos/{0}/{1}/pulls/{2}".format(
-        DEFAULT_REPO_OWNER, PR_REPOSITORY, prNumber
+        DEFAULT_REPO_OWNER, PR_REPOSITORY, pr_number
     )
 
 
-def add_tickets_to_tickets(newTickets):
-    for newTicket in newTickets:
-        if newTicket in tickets:
-            if pr[0] not in tickets[newTicket]:
-                tickets[newTicket].append(pr[0])
+def add_tickets_to_tickets(new_tickets):
+    for new_ticket in new_tickets:
+        if new_ticket in tickets:
+            if pr[0] not in tickets[new_ticket]:
+                tickets[new_ticket].append(pr[0])
         else:
-            tickets[newTicket] = [pr[0]]
+            tickets[new_ticket] = [pr[0]]
 
 
-def get_ticket_detai_is(ticket):
+def get_ticket_details(ticket):
     try:
-        ticketDetails = requests.get(
+        ticket_details = requests.get(
             get_ticket_content_url(ticket), auth=TICKET_CREDENTIALS
         ).json()
 
-        ticketType = "Features"
-        if ticketDetails["fields"]["issuetype"]["name"] in ["Bug"]:
-            ticketType = "Fixes"
+        ticket_type = "Features"
+        if ticket_details["fields"]["issuetype"]["name"] in ["Bug"]:
+            ticket_type = "Fixes"
         return [
             ticket,
             tickets[ticket],
-            ticketType,
-            ticketDetails["fields"]["summary"]
+            ticket_type,
+            ticket_details["fields"]["summary"]
         ]
     except:
         return [ticket, tickets[ticket], "Tickets", ""]
 
 
-def get_pr_labels(existingPrJson):
+def get_pr_labels(existing_pr_json):
     labels = []
     if LOG_RESPONSES:
         print("Old PR response:")
-        print(existingPrJson)
+        print(existing_pr_json)
 
-    for label in existingPrJson["labels"]:
+    for label in existing_pr_json["labels"]:
         labels.append(label["name"])
 
     return labels
 
 
 def should_include_pr(pr):
-    prDetails = requests.get(
+    pr_details = requests.get(
         get_pr_url(pr),
         headers={"Authorization": GITHUB_CREDENTIALS},
     ).json()
-    return (prDetails["head"]["ref"] != "develop") or (
-        prDetails["base"]["ref"] == "master"
+    return (pr_details["head"]["ref"] != "develop") or (
+        pr_details["base"]["ref"] == "master"
     )
 
 
@@ -245,7 +245,7 @@ for commit in commits:
         readmeData.append(["", [], "Other", commit])
 
 for ticket in tickets:
-    readmeData.append(get_ticket_detai_is(ticket))
+    readmeData.append(get_ticket_details(ticket))
 
 #  ticket,    prs,     type,   message
 # ["OXA-123", [13, 2], "Bugs", "Message"]
