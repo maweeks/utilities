@@ -23,10 +23,10 @@ GITHUB_CREDENTIALS = str(sys.argv[7])
 TICKET_CREDENTIALS = ("matthew.weeks", str(sys.argv[8]))
 
 
-################################################################################
+######################################################################
 
 
-def printParameters():
+def print_parameters():
     print("Parameters:")
     print("PR_REPOSITORY:         {0}".format(PR_REPOSITORY))
     print("PR_ISSUE_NUMBER:       {0}".format(PR_ISSUE_NUMBER))
@@ -38,27 +38,27 @@ def printParameters():
     print("TICKET_CREDENTIALS:    {0}".format(TICKET_CREDENTIALS))
 
 
-def getTicketsFromString(string):
+def get_tickets_from_string(string):
     return re.findall(CODE_REGEX, string)
 
 
-def getTicketContentUrl(ticket):
+def get_ticket_content_url(ticket):
     return "{1}rest/api/3/issue/{0}?fields=summary,issuetype".format(
         ticket, TICKET_BASE_URL
     )
 
 
-def getReleaseMarkdownLink(release):
+def get_release_markdown_link(release):
     return "release [{0}](https://github.com/{1}/{2}/pull/{3})".format(
         release, DEFAULT_REPO_OWNER, PR_REPOSITORY, PR_ISSUE_NUMBER
     )
 
 
-def getTicketMarkdownLink(ticket):
+def get_ticket_markdown_link(ticket):
     return "[{0}]({1}browse/{0}) ".format(ticket, TICKET_BASE_URL)
 
 
-def getReadmeItemText(item, section):
+def get_readme_item_text(item, section):
     itemString = ""
     if item[2] == section:
         if len(item[1]) > 0:
@@ -66,7 +66,7 @@ def getReadmeItemText(item, section):
             item[1] = ["{0}".format(str(pr)) for pr in item[1]]
             itemString += str(item[1]).replace("'", "") + " "
         if len(item[0]) > 0:
-            itemString = getTicketMarkdownLink(item[0]) + itemString
+            itemString = get_ticket_markdown_link(item[0]) + itemString
         if itemString != "":
             itemString = "- " + itemString
         if item[3] != "":
@@ -76,7 +76,7 @@ def getReadmeItemText(item, section):
     return itemString
 
 
-def getPrCommits(issueNumber):
+def get_pr_commits(issueNumber):
     return requests.get(
         "https://api.github.com/repos/{0}/{1}/pulls/{2}/commits".format(
             DEFAULT_REPO_OWNER, PR_REPOSITORY, issueNumber
@@ -85,25 +85,25 @@ def getPrCommits(issueNumber):
     ).json()
 
 
-def getCreateReleaseUrl():
+def get_create_release_url():
     return "https://api.github.com/repos/{0}/{1}/releases".format(
         DEFAULT_REPO_OWNER, PR_REPOSITORY
     )
 
 
-def getIssueUrl():
+def get_issue_url():
     return "https://api.github.com/repos/{0}/{1}/issues/{2}".format(
         DEFAULT_REPO_OWNER, PR_REPOSITORY, PR_ISSUE_NUMBER
     )
 
 
-def getPrUrl(prNumber):
+def get_pr_url(prNumber):
     return "https://api.github.com/repos/{0}/{1}/pulls/{2}".format(
         DEFAULT_REPO_OWNER, PR_REPOSITORY, prNumber
     )
 
 
-def addTicketsToTickets(newTickets):
+def add_tickets_to_tickets(newTickets):
     for newTicket in newTickets:
         if newTicket in tickets:
             if pr[0] not in tickets[newTicket]:
@@ -112,21 +112,26 @@ def addTicketsToTickets(newTickets):
             tickets[newTicket] = [pr[0]]
 
 
-def getTicketDetails(ticket):
+def get_ticket_detai_is(ticket):
     try:
         ticketDetails = requests.get(
-            getTicketContentUrl(ticket), auth=TICKET_CREDENTIALS
+            get_ticket_content_url(ticket), auth=TICKET_CREDENTIALS
         ).json()
 
         ticketType = "Features"
         if ticketDetails["fields"]["issuetype"]["name"] in ["Bug"]:
             ticketType = "Fixes"
-        return [ticket, tickets[ticket], ticketType, ticketDetails["fields"]["summary"]]
+        return [
+            ticket,
+            tickets[ticket],
+            ticketType,
+            ticketDetails["fields"]["summary"]
+        ]
     except:
         return [ticket, tickets[ticket], "Tickets", ""]
 
 
-def getPrLabels(existingPrJson):
+def get_pr_labels(existingPrJson):
     labels = []
     if LOG_RESPONSES:
         print("Old PR response:")
@@ -138,36 +143,38 @@ def getPrLabels(existingPrJson):
     return labels
 
 
-def shouldIncludePr(pr):
+def should_include_pr(pr):
     prDetails = requests.get(
-        getPrUrl(pr), headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+        get_pr_url(pr),
+        headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
     ).json()
     return (prDetails["head"]["ref"] != "develop") or (
         prDetails["base"]["ref"] == "master"
     )
 
 
-################################################################################
+######################################################################
 # Create release
 
 if CREATE_GITHUB_RELEASE:
     data = {
         "tag_name": PR_RELEASE,
         "name": PR_RELEASE,
-        "body": getReleaseMarkdownLink(PR_RELEASE).capitalize(),
+        "body": get_release_markdown_link(PR_RELEASE).capitalize(),
         "draft": False,
         "prerelease": False,
     }
 
     if DRY_RUN:
         print("DRY RUN: Create release request:")
-        print(getCreateReleaseUrl())
+        print(get_create_release_url())
         print(json.dumps(data))
     else:
         try:
             createRelease = requests.post(
-                getCreateReleaseUrl(),
-                headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+                get_create_release_url(),
+                headers={"Authorization": "token {0}".format(
+                    GITHUB_CREDENTIALS)},
                 data=json.dumps(data),
             )
             if LOG_RESPONSES:
@@ -180,12 +187,12 @@ else:
     print("Skipping create release.")
 
 
-################################################################################
+######################################################################
 # Generate release notes
 
 existingPrCommits = []
 try:
-    existingPrCommits = getPrCommits(PR_ISSUE_NUMBER)
+    existingPrCommits = get_pr_commits(PR_ISSUE_NUMBER)
 except:
     print("Failed to get main PR commits {0}".format(PR_ISSUE_NUMBER))
     raise SystemExit()
@@ -203,20 +210,20 @@ for commitJSON in existingPrCommits:
     else:
         if commit.startswith("Merge pull request #"):
             prNumber = re.search("#[0-9]+", commit).group()
-            branch = commit[len(prNumber) + 24 :]
+            branch = commit[len(prNumber) + 24:]
             prs.append([prNumber, branch])
         elif not commit.startswith("Merge remote-tracking branch"):
             commits.append(commit)
 
 for pr in prs:
-    prTickets = getTicketsFromString(pr[1])
+    prTickets = get_tickets_from_string(pr[1])
     includePr = False
     try:
-        prCommits = getPrCommits(pr[0].split("#")[1])
-        includePr = shouldIncludePr(pr[0].split("#")[1])
+        prCommits = get_pr_commits(pr[0].split("#")[1])
+        includePr = should_include_pr(pr[0].split("#")[1])
         for prCommit in prCommits:
             if includePr:
-                prTickets += getTicketsFromString(
+                prTickets += get_tickets_from_string(
                     prCommit["commit"]["message"].split("\n")[0]
                 )
             if prCommit["commit"]["message"] in commits:
@@ -229,19 +236,19 @@ for pr in prs:
         if len(prTickets) == 0:
             readmeData.append(["", [], "Other", pr[1].split("/")[-1]])
         else:
-            addTicketsToTickets(prTickets)
+            add_tickets_to_tickets(prTickets)
 
 for commit in commits:
-    commitTickets = getTicketsFromString(commit)
+    commitTickets = get_tickets_from_string(commit)
     if len(commitTickets) > 0:
-        addTicketsToTickets(commitTickets)
+        add_tickets_to_tickets(commitTickets)
     else:
         readmeData.append(["", [], "Other", commit])
 
 for ticket in tickets:
-    readmeData.append(getTicketDetails(ticket))
+    readmeData.append(get_ticket_detai_is(ticket))
 
-# [ticket,    prs,     type,   message]
+#  ticket,    prs,     type,   message
 # ["OXA-123", [13, 2], "Bugs", "Message"]
 if teamcityChange:
     readmeData.append(["", [], "Other", "Updated TeamCity build(s)."])
@@ -249,13 +256,13 @@ if teamcityChange:
 readmeData.sort(key=lambda x: (x[0], x[3]))
 
 readmeString = "{0} {1}:\n".format(
-    PR_REPOSITORY.capitalize(), getReleaseMarkdownLink(PR_RELEASE)
+    PR_REPOSITORY.capitalize(), get_release_markdown_link(PR_RELEASE)
 )
 
 for section in README_SECTIONS:
     sectionString = ""
     for item in readmeData:
-        sectionString += getReadmeItemText(item, section)
+        sectionString += get_readme_item_text(item, section)
     if sectionString != "":
         readmeString += "\n{0}:\n\n{1}".format(section, sectionString)
 
@@ -264,13 +271,13 @@ print(readmeString)
 print("##################################################")
 
 
-################################################################################
+######################################################################
 # Update PR
 
 existingPr = ""
 try:
     existingPr = requests.get(
-        getIssueUrl(),
+        get_issue_url(),
         headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
     ).json()
 except:
@@ -278,7 +285,7 @@ except:
     raise SystemExit()
 
 prData = {}
-labels = getPrLabels(existingPr)
+labels = get_pr_labels(existingPr)
 
 if LABEL_TO_ADD not in labels:
     labels.append(LABEL_TO_ADD)
@@ -292,13 +299,14 @@ if UPDATE_PR_TEXT:
 if prData != {}:
     if DRY_RUN:
         print("DRY RUN: Create release request:")
-        print(getIssueUrl())
+        print(get_issue_url())
         print(json.dumps(prData))
     else:
         try:
             updatePR = requests.patch(
-                getIssueUrl(),
-                headers={"Authorization": "token {0}".format(GITHUB_CREDENTIALS)},
+                get_issue_url(),
+                headers={"Authorization": "token {0}".format(
+                    GITHUB_CREDENTIALS)},
                 data=json.dumps(prData),
             )
 
