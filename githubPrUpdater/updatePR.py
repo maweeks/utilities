@@ -4,7 +4,7 @@ import requests
 import sys
 
 DEFAULT_REPO_OWNER = "maweeks"
-LABEL_TO_ADD = "release"
+LABEL_TO_ADD = "Release"
 
 TICKET_BASE_URL = "https://bob.atlassian.net/"
 CODE_PREFIXES = ["ASDF", "QWER", "ZXCV"]
@@ -211,7 +211,8 @@ for commitJSON in existingPrCommits:
             prNumber = re.search("#[0-9]+", commit).group()
             branch = commit[len(prNumber) + 24:]
             prs.append([prNumber, branch])
-        elif not commit.startswith("Merge remote-tracking branch"):
+        elif ((not commit.startswith("Merge remote-tracking branch"))
+              and (not commit.startswith("Merge branch 'develop' into"))):
             commits.append(commit)
 
 for pr in prs:
@@ -221,12 +222,13 @@ for pr in prs:
         prCommits = get_pr_commits(pr[0].split("#")[1])
         includePr = should_include_pr(pr[0].split("#")[1])
         for prCommit in prCommits:
+            prCommitMessage = prCommit["commit"]["message"].split("\n")[0]
             if includePr:
                 prTickets += get_tickets_from_string(
-                    prCommit["commit"]["message"].split("\n")[0]
+                    prCommitMessage
                 )
-            if prCommit["commit"]["message"] in commits:
-                commits.remove(prCommit["commit"]["message"])
+            if prCommitMessage in commits:
+                commits.remove(prCommitMessage)
     except Exception:
         print("Failed to get feature PR commits {0}".format(PR_ISSUE_NUMBER))
         raise SystemExit()
