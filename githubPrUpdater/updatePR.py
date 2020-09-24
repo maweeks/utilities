@@ -4,7 +4,7 @@ import requests
 import sys
 
 DEFAULT_REPO_OWNER = "maweeks"
-LABEL_TO_ADD = "Release"
+LABEL_TO_ADD = ":rocket: release :rocket:"
 
 TICKET_BASE_URL = "https://bob.atlassian.net/"
 CODE_PREFIXES = ["ASDF", "QWER", "ZXCV"]
