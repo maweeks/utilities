@@ -35,4 +35,4 @@ echo $REPO
 echo $PR_NUMBER
 echo $VERSION
 
-python updatePR.py $REPO $PR_NUMBER $VERSION "Y" "Y" "Y" "GITHUB" "JIRA" "Y" "test/"
+python updatePR.py $REPO $PR_NUMBER $VERSION "Y" "Y" "Y" "GITHUB" "JIRA" "Y" "testOutput/"

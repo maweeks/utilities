@@ -12,12 +12,11 @@ fi
 
 rm -f testOutput/*.md
 
+GITHUB=$1
 REPO="test-utilities"
 
 # 55: Basic test with single commit in other.
-python updatePR.py $REPO "55" "3.0.57" "Y" "N" "N" "" "JIRA" "Y" "testOutput/"
-
-sleep 5
+python updatePR.py $REPO "55" "3.0.57" "Y" "N" "N" "$GITHUB" "JIRA" "Y" "testOutput/"
 
 GIT_STATUS_2=$(git status)
 
