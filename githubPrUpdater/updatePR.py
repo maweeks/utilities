@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import requests
 import sys
@@ -21,6 +22,8 @@ CREATE_GITHUB_RELEASE = "Y" == str(sys.argv[5])
 UPDATE_PR_TEXT = "Y" == str(sys.argv[6])
 GITHUB_CREDENTIALS = "token {0}".format(str(sys.argv[7]))
 TICKET_CREDENTIALS = ("matthew.weeks", str(sys.argv[8]))
+EXPORT_RELEASE_NOTES = "Y" == str(sys.argv[9])
+EXPORT_DIR = str(sys.argv[10])
 
 
 ######################################################################
@@ -36,6 +39,8 @@ def print_parameters():
     print("UPDATE_PR_TEXT:        {0}".format(UPDATE_PR_TEXT))
     print("GITHUB_CREDENTIALS:    {0}".format(GITHUB_CREDENTIALS))
     print("TICKET_CREDENTIALS:    {0}".format(TICKET_CREDENTIALS))
+    print("EXPORT_RELEASE_NOTES:  {0}".format(EXPORT_RELEASE_NOTES))
+    print("EXPORT_DIR:            {0}".format(EXPORT_DIR))
 
 
 def get_tickets_from_string(string):
@@ -271,6 +276,17 @@ print("##################################################")
 print(readmeString)
 print("##################################################")
 
+if EXPORT_RELEASE_NOTES:
+    try:
+        os.makedirs(EXPORT_DIR)
+    except OSError:
+        pass
+    text_file = open("{0}/{1}-{2}.md".format(EXPORT_DIR,
+                                             PR_REPOSITORY,
+                                             PR_ISSUE_NUMBER
+                                             ), "w")
+    text_file.write(readmeString)
+    text_file.close()
 
 ######################################################################
 # Update PR

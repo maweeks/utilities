@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 cd ../../test-utilities
 git checkout develop
 git pull
@@ -33,4 +35,4 @@ echo $REPO
 echo $PR_NUMBER
 echo $VERSION
 
-python updatePR.py $REPO $PR_NUMBER $VERSION "Y" "Y" "Y" "GITHUB" "JIRA"
+python updatePR.py $REPO $PR_NUMBER $VERSION "Y" "Y" "Y" "GITHUB" "JIRA" "Y" "test/"
