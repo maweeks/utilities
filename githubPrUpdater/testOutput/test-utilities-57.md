@@ -2,4 +2,4 @@ Test-utilities release [3.0.59](https://github.com/maweeks/test-utilities/pull/5
 
 Tickets:
 
-- [ASDF-123](https://bob.atlassian.net/browse/ASDF-123) 
+- [ASDF-123](https://bob.atlassian.net/browse/ASDF-123)

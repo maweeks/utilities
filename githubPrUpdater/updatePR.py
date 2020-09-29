@@ -77,7 +77,7 @@ def get_readme_item_text(item, section):
         if item[3] != "":
             item_string += "- {0}".format(item[3])
         if len(item_string) > 0:
-            item_string += "\n"
+            item_string = item_string.strip() + "\n"
     return item_string
 
 
