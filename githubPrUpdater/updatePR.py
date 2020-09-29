@@ -108,16 +108,13 @@ def get_pr_url(pr_number):
     )
 
 
-def add_tickets_to_tickets(new_tickets, pr):
+def add_tickets_to_tickets(new_tickets):
     for new_ticket in new_tickets:
-        if len(pr) > 0:
-            if new_ticket in tickets:
-                if pr[0] not in tickets[new_ticket]:
-                    tickets[new_ticket].append(pr)
-            else:
-                tickets[new_ticket] = [pr]
-        elif new_ticket in tickets:
-            tickets[new_ticket] = []
+        if new_ticket in tickets:
+            if pr[0] not in tickets[new_ticket]:
+                tickets[new_ticket].append(pr[0])
+        else:
+            tickets[new_ticket] = [pr[0]]
 
 
 def get_ticket_details(ticket):
@@ -246,12 +243,14 @@ for pr in prs:
         if len(prTickets) == 0:
             readmeData.append(["", [], "Other", pr[1].split("/")[-1]])
         else:
-            add_tickets_to_tickets(prTickets, pr[0])
+            add_tickets_to_tickets(prTickets)
 
 for commit in commits:
     commitTickets = get_tickets_from_string(commit)
     if len(commitTickets) > 0:
-        add_tickets_to_tickets(commitTickets, '')
+        for new_ticket in commitTickets:
+            if new_ticket not in tickets:
+                tickets[new_ticket] = []
     else:
         readmeData.append(["", [], "Other", commit])
 
