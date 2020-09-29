@@ -241,7 +241,7 @@ for pr in prs:
 
     if includePr:
         if len(prTickets) == 0:
-            readmeData.append(["", [], "Other", pr[1].split("/")[-1]])
+            readmeData.append(["", [pr[0]], "Other", pr[1].split("/")[-1]])
         else:
             add_tickets_to_tickets(prTickets)
 
