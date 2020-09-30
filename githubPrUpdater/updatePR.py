@@ -83,7 +83,7 @@ def get_readme_item_text(item, section):
 
 def get_pr_commits(issue_number):
     return requests.get(
-        "https://api.github.com/repos/{0}/{1}/pulls/{2}/commits".format(
+        "https://api.github.com/repos/{0}/{1}/pulls/{2}/commits?per_page=250".format(
             DEFAULT_REPO_OWNER, PR_REPOSITORY, issue_number
         ),
         headers={"Authorization": GITHUB_CREDENTIALS},
