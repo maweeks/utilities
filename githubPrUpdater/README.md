@@ -7,7 +7,7 @@
 
 ## How to run
 
-`python updatePR.py "test-repo" "1" "0.0.1" "Y" "Y" "Y" "GITHUB_PASS" "TICKET_PASS"`
+`python updatePR.py "test-repo" "1" "0.0.1" "Y" "Y" "Y" "GITHUB_PASS" "TICKET_PASS" "N" ""`
 
 Command line variables:
 
@@ -19,5 +19,35 @@ Command line variables:
 6. `UPDATE_PR_TEXT` - `Y` to update the title and description of the PR
 7. `GITHUB_PASSWORD` - GitHub password
 8. `TICKET_PASSWORD` - Ticket password
+9. `EXPORT_RELEASE_NOTES` - `Y` to output the release notes to a file
+10. `EXPORT_DIR` = String of directory to output to
 
-Also update lines: 6, 7, 9, 10, 11, 22, 23 in `updatePR.py`
+Also update lines: 7-8, 10-13, 24 in `updatePR.py` and modify `get_ticket_details` to use anything but JIRA.
+
+## How to run the E2E tests
+
+`./autoTest.sh "GITHUB_PASS" "TICKET_PASS"`
+
+1. `GITHUB_PASSWORD` - GitHub password
+2. `TICKET_PASSWORD` - Ticket password
+
+### How it worksish
+
+- Generate a Github release using the parameters provided
+- Get all commit messages from the main release commit
+- Check the contents of the first line of each commit
+  - Is a pull request merge
+    - Get commits from feature pull request
+      - Get tickets by code from branch name
+      - Get tickets by code from PR commits
+      - If PR has tickets
+        - Add ticket to release notes
+      - Else
+        - Add branch name to release notes
+  - Is a TeamCity change
+    - Include TeamCity change in release notes ONCE
+  - Is a commit not from a pull request
+    - Add commit message as item in release notes
+- Get ticket details from ticket API
+- Sort release notes by ticket types
+- Update release PR with labels, title and generated release notes
