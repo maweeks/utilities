@@ -26,7 +26,10 @@ Also update lines: 7-8, 10-13, 24 in `updatePR.py` and modify `get_ticket_detail
 
 ## How to run the E2E tests
 
-`./autoTest.sh "GITHUB_PASS" "TICKET_PASS"`
+1. Clear your unstaged `git diff` (these tests verify changes using `git diff`)
+2. `./autoTest.sh "GITHUB_PASS" "TICKET_PASS"`
+
+Command line variables:
 
 1. `GITHUB_PASSWORD` - GitHub password
 2. `TICKET_PASSWORD` - Ticket password
