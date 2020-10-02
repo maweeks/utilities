@@ -36,6 +36,8 @@ Command line variables:
 
 ### How it worksish
 
+#### updatePR.py
+
 - Generate a Github release using the parameters provided
 - Get all commit messages from the main release commit
 - Check the contents of the first line of each commit
@@ -54,3 +56,7 @@ Command line variables:
 - Get ticket details from ticket API
 - Sort release notes by ticket types
 - Update release PR with labels, title and generated release notes
+
+#### E2E tests
+
+`autoTest.sh "GITHUB_PASS" "TICKET_PASS"` can be used to test the python script still outputs as expected. This bash script runs `updatePr.py` multiple times and verifies the output is as expected in `testOutput` directory. Your git unstaged changes need to be clear to run the tests.
