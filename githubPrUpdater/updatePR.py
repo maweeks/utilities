@@ -225,16 +225,17 @@ def generate_readme_data():
         pr_tickets = get_tickets_from_string(pr[1])
         include_pr = False
         try:
-            prCommits = get_pr_commits(pr[0].split("#")[1])
+            pr_commits = get_pr_commits(pr[0].split("#")[1])
             include_pr = should_include_pr(pr[0].split("#")[1])
-            for prCommit in prCommits:
-                prCommitMessage = prCommit["commit"]["message"].split("\n")[0]
+            for pr_commit in pr_commits:
+                pr_commit_message = pr_commit["commit"]["message"].split("\n")[
+                    0]
                 if include_pr:
                     pr_tickets += get_tickets_from_string(
-                        prCommitMessage
+                        pr_commit_message
                     )
-                if prCommitMessage in commits:
-                    commits.remove(prCommitMessage)
+                if pr_commit_message in commits:
+                    commits.remove(pr_commit_message)
         except Exception:
             print("Failed to get feature PR commits {0}".format(
                 PR_ISSUE_NUMBER))
@@ -269,22 +270,22 @@ def generate_readme_data():
 
 
 def generate_readme_string(readme_data):
-    readmeString = "{0} {1}:\n".format(
+    readme_string = "{0} {1}:\n".format(
         PR_REPOSITORY.capitalize(), get_release_markdown_link(PR_RELEASE)
     )
 
     for section in README_SECTIONS:
-        sectionString = ""
+        section_string = ""
         for item in readme_data:
-            sectionString += get_readme_item_text(item, section)
-        if sectionString != "":
-            readmeString += "\n{0}:\n\n{1}".format(section, sectionString)
+            section_string += get_readme_item_text(item, section)
+        if section_string != "":
+            readme_string += "\n{0}:\n\n{1}".format(section, section_string)
 
     print("##################################################")
-    print(readmeString)
+    print(readme_string)
     print("##################################################")
 
-    return readmeString
+    return readme_string
 
 
 def write_to_file(contents):
@@ -304,9 +305,9 @@ def write_to_file(contents):
 
 
 def update_pr(contents):
-    existingPr = ""
+    existing_pr = ""
     try:
-        existingPr = requests.get(
+        existing_pr = requests.get(
             get_issue_url(),
             headers={"Authorization": GITHUB_CREDENTIALS},
         ).json()
@@ -315,7 +316,7 @@ def update_pr(contents):
         raise SystemExit()
 
     pr_data = {}
-    labels = get_pr_labels(existingPr)
+    labels = get_pr_labels(existing_pr)
 
     if LABEL_TO_ADD not in labels:
         labels.append(LABEL_TO_ADD)
@@ -378,9 +379,9 @@ def post_slack_message(data):
 def run_script():
     create_release()
     readme_data = generate_readme_data()
-    readmeString = generate_readme_string(readme_data)
-    write_to_file(readmeString)
-    update_pr(readmeString)
+    readme_string = generate_readme_string(readme_data)
+    write_to_file(readme_string)
+    update_pr(readme_string)
     post_slack_message(generate_message_data(''))
     print("Script complete.")
 
