@@ -22,7 +22,7 @@ Command line variables:
 9. `EXPORT_RELEASE_NOTES` - `Y` to output the release notes to a file
 10. `EXPORT_DIR` = String of directory to output to
 
-Also update lines: 7-8, 10-13, 24 in `updatePR.py` and modify `get_ticket_details` to use anything but JIRA.
+Also update lines: 8-16 in `updatePR.py` and modify `get_ticket_details` to use anything but JIRA.
 
 ## How to run the E2E tests
 

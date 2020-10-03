@@ -4,15 +4,16 @@ import re
 import requests
 import sys
 
+
 DEFAULT_REPO_OWNER = "maweeks"
 LABEL_TO_ADD = ":rocket: release :rocket:"
-
 TICKET_BASE_URL = "https://bob.atlassian.net/"
+TICKET_USER = "matthew.weeks"
 CODE_PREFIXES = ["ASDF", "QWER", "ZXCV"]
 CODE_REGEX = "|".join(code + "-[0-9]+" for code in CODE_PREFIXES)
 README_SECTIONS = ["Features", "Fixes", "Tickets", "Other"]
-
 LOG_RESPONSES = False
+SLACK_CHANNEL = "#general"
 
 PR_REPOSITORY = str(sys.argv[1])
 PR_ISSUE_NUMBER = str(sys.argv[2])
@@ -21,9 +22,11 @@ DRY_RUN = "Y" == str(sys.argv[4])
 CREATE_GITHUB_RELEASE = "Y" == str(sys.argv[5])
 UPDATE_PR_TEXT = "Y" == str(sys.argv[6])
 GITHUB_CREDENTIALS = "token {0}".format(str(sys.argv[7]))
-TICKET_CREDENTIALS = ("matthew.weeks", str(sys.argv[8]))
+TICKET_CREDENTIALS = (TICKET_USER, str(sys.argv[8]))
 EXPORT_RELEASE_NOTES = "Y" == str(sys.argv[9])
 EXPORT_DIR = str(sys.argv[10])
+SLACK_TOKEN = str(sys.argv[11])
+POST_TO_SLACK = "Y" == str(sys.argv[12])
 
 
 ######################################################################
@@ -41,6 +44,39 @@ def print_parameters():
     print("TICKET_CREDENTIALS:    {0}".format(TICKET_CREDENTIALS))
     print("EXPORT_RELEASE_NOTES:  {0}".format(EXPORT_RELEASE_NOTES))
     print("EXPORT_DIR:            {0}".format(EXPORT_DIR))
+    print("SLACK_TOKEN:           {0}".format(SLACK_TOKEN))
+    print("POST_TO_SLACK:         {0}".format(POST_TO_SLACK))
+
+
+def create_release():
+    if CREATE_GITHUB_RELEASE:
+        data = {
+            "tag_name": PR_RELEASE,
+            "name": PR_RELEASE,
+            "body": get_release_markdown_link(PR_RELEASE).capitalize(),
+            "draft": False,
+            "prerelease": False,
+        }
+
+        if DRY_RUN:
+            print("DRY RUN: Create release request:")
+            print(get_create_release_url())
+            print(json.dumps(data))
+        else:
+            try:
+                createRelease = requests.post(
+                    get_create_release_url(),
+                    headers={"Authorization": GITHUB_CREDENTIALS},
+                    data=json.dumps(data),
+                )
+                if LOG_RESPONSES:
+                    print("Create release response:")
+                    print(createRelease.text)
+            except Exception:
+                print("Failed to create release")
+                raise SystemExit()
+    else:
+        print("Skipping create release.")
 
 
 def get_tickets_from_string(string):
@@ -108,7 +144,7 @@ def get_pr_url(pr_number):
     )
 
 
-def add_tickets_to_tickets(new_tickets):
+def add_tickets_to_tickets(new_tickets, tickets, pr):
     for new_ticket in new_tickets:
         if new_ticket in tickets:
             if pr[0] not in tickets[new_ticket]:
@@ -117,7 +153,7 @@ def add_tickets_to_tickets(new_tickets):
             tickets[new_ticket] = [pr[0]]
 
 
-def get_ticket_details(ticket):
+def get_ticket_details(ticket, tickets):
     try:
         ticket_details = requests.get(
             get_ticket_content_url(ticket), auth=TICKET_CREDENTIALS
@@ -158,185 +194,198 @@ def should_include_pr(pr):
     )
 
 
-######################################################################
-# Create release
-
-if CREATE_GITHUB_RELEASE:
-    data = {
-        "tag_name": PR_RELEASE,
-        "name": PR_RELEASE,
-        "body": get_release_markdown_link(PR_RELEASE).capitalize(),
-        "draft": False,
-        "prerelease": False,
-    }
-
-    if DRY_RUN:
-        print("DRY RUN: Create release request:")
-        print(get_create_release_url())
-        print(json.dumps(data))
-    else:
-        try:
-            createRelease = requests.post(
-                get_create_release_url(),
-                headers={"Authorization": GITHUB_CREDENTIALS},
-                data=json.dumps(data),
-            )
-            if LOG_RESPONSES:
-                print("Create release response:")
-                print(createRelease.text)
-        except Exception:
-            print("Failed to create release")
-            raise SystemExit()
-else:
-    print("Skipping create release.")
-
-
-######################################################################
-# Generate release notes
-
-existingPrCommits = []
-try:
-    existingPrCommits = get_pr_commits(PR_ISSUE_NUMBER)
-except Exception:
-    print("Failed to get main PR commits {0}".format(PR_ISSUE_NUMBER))
-    raise SystemExit()
-
-teamcityChange = False
-commits = []
-prs = []
-tickets = {}
-readmeData = []
-
-for commitJSON in existingPrCommits:
-    commit = commitJSON["commit"]["message"].split("\n")[0]
-    if commit.startswith("TeamCity change in"):
-        teamcityChange = True
-    else:
-        if commit.startswith("Merge pull request #"):
-            prNumber = re.search("#[0-9]+", commit).group()
-            branch = commit[len(prNumber) + 24:]
-            prs.append([prNumber, branch])
-        elif ((not commit.startswith("Merge remote-tracking branch"))
-              and (not commit.startswith("Merge branch 'develop' into"))
-              and (not commit.startswith("Merge branch 'master' into"))):
-            commits.append(commit)
-
-for pr in prs:
-    prTickets = get_tickets_from_string(pr[1])
-    includePr = False
+def generate_readme_data():
+    existingPrCommits = []
     try:
-        prCommits = get_pr_commits(pr[0].split("#")[1])
-        includePr = should_include_pr(pr[0].split("#")[1])
-        for prCommit in prCommits:
-            prCommitMessage = prCommit["commit"]["message"].split("\n")[0]
-            if includePr:
-                prTickets += get_tickets_from_string(
-                    prCommitMessage
-                )
-            if prCommitMessage in commits:
-                commits.remove(prCommitMessage)
+        existingPrCommits = get_pr_commits(PR_ISSUE_NUMBER)
     except Exception:
-        print("Failed to get feature PR commits {0}".format(PR_ISSUE_NUMBER))
+        print("Failed to get main PR commits {0}".format(PR_ISSUE_NUMBER))
         raise SystemExit()
 
-    if includePr:
-        if len(prTickets) == 0:
-            readmeData.append(["", [pr[0]], "Other", pr[1].split("/")[-1]])
+    teamcityChange = False
+    commits = []
+    prs = []
+    tickets = {}
+    readmeData = []
+
+    for commitJSON in existingPrCommits:
+        commit = commitJSON["commit"]["message"].split("\n")[0]
+        if commit.startswith("TeamCity change in"):
+            teamcityChange = True
         else:
-            add_tickets_to_tickets(prTickets)
+            if commit.startswith("Merge pull request #"):
+                prNumber = re.search("#[0-9]+", commit).group()
+                branch = commit[len(prNumber) + 24:]
+                prs.append([prNumber, branch])
+            elif ((not commit.startswith("Merge remote-tracking branch"))
+                  and (not commit.startswith("Merge branch "))):
+                commits.append(commit)
 
-for commit in commits:
-    commitTickets = get_tickets_from_string(commit)
-    if len(commitTickets) > 0:
-        for new_ticket in commitTickets:
-            if new_ticket not in tickets:
-                tickets[new_ticket] = []
-    else:
-        readmeData.append(["", [], "Other", commit])
-
-for ticket in tickets:
-    readmeData.append(get_ticket_details(ticket))
-
-#  ticket,    prs,     type,   message
-# ["OXA-123", [13, 2], "Bugs", "Message"]
-if teamcityChange:
-    readmeData.append(["", [], "Other", "Updated TeamCity build(s)."])
-
-readmeData.sort(key=lambda x: (x[0], x[3]))
-
-readmeString = "{0} {1}:\n".format(
-    PR_REPOSITORY.capitalize(), get_release_markdown_link(PR_RELEASE)
-)
-
-for section in README_SECTIONS:
-    sectionString = ""
-    for item in readmeData:
-        sectionString += get_readme_item_text(item, section)
-    if sectionString != "":
-        readmeString += "\n{0}:\n\n{1}".format(section, sectionString)
-
-print("##################################################")
-print(readmeString)
-print("##################################################")
-
-if EXPORT_RELEASE_NOTES:
-    try:
-        os.makedirs(EXPORT_DIR)
-    except OSError:
-        pass
-    text_file = open("{0}/{1}-{2}.md".format(EXPORT_DIR,
-                                             PR_REPOSITORY,
-                                             PR_ISSUE_NUMBER
-                                             ), "w")
-    text_file.write(readmeString)
-    text_file.close()
-
-######################################################################
-# Update PR
-
-existingPr = ""
-try:
-    existingPr = requests.get(
-        get_issue_url(),
-        headers={"Authorization": GITHUB_CREDENTIALS},
-    ).json()
-except Exception:
-    print("Failed to get existing PR")
-    raise SystemExit()
-
-prData = {}
-labels = get_pr_labels(existingPr)
-
-if LABEL_TO_ADD not in labels:
-    labels.append(LABEL_TO_ADD)
-    prData["labels"] = labels
-
-
-if UPDATE_PR_TEXT:
-    prData["title"] = "Release {0}".format(PR_RELEASE)
-    prData["body"] = readmeString
-
-if prData != {}:
-    if DRY_RUN:
-        print("DRY RUN: Create release request:")
-        print(get_issue_url())
-        print(json.dumps(prData))
-    else:
+    for pr in prs:
+        prTickets = get_tickets_from_string(pr[1])
+        includePr = False
         try:
-            updatePR = requests.patch(
-                get_issue_url(),
-                headers={"Authorization": GITHUB_CREDENTIALS},
-                data=json.dumps(prData),
-            )
-
-            if LOG_RESPONSES:
-                print("Update PR response:")
-                print(updatePR.text)
-
+            prCommits = get_pr_commits(pr[0].split("#")[1])
+            includePr = should_include_pr(pr[0].split("#")[1])
+            for prCommit in prCommits:
+                prCommitMessage = prCommit["commit"]["message"].split("\n")[0]
+                if includePr:
+                    prTickets += get_tickets_from_string(
+                        prCommitMessage
+                    )
+                if prCommitMessage in commits:
+                    commits.remove(prCommitMessage)
         except Exception:
-            print("Failed to update PR")
+            print("Failed to get feature PR commits {0}".format(
+                PR_ISSUE_NUMBER))
             raise SystemExit()
-else:
-    print("No PR changes to be made.")
 
-print("Script complete.")
+        if includePr:
+            if len(prTickets) == 0:
+                readmeData.append(["", [pr[0]], "Other", pr[1].split("/")[-1]])
+            else:
+                add_tickets_to_tickets(prTickets, tickets, pr)
+
+    for commit in commits:
+        commitTickets = get_tickets_from_string(commit)
+        if len(commitTickets) > 0:
+            for new_ticket in commitTickets:
+                if new_ticket not in tickets:
+                    tickets[new_ticket] = []
+        else:
+            readmeData.append(["", [], "Other", commit])
+
+    for ticket in tickets:
+        readmeData.append(get_ticket_details(ticket, tickets))
+
+    #  ticket,    prs,     type,   message
+    # ["OXA-123", [13, 2], "Bugs", "Message"]
+    if teamcityChange:
+        readmeData.append(["", [], "Other", "Updated TeamCity build(s)."])
+
+    readmeData.sort(key=lambda x: (x[0], x[3]))
+    return readmeData
+
+
+def generate_readme_string(readmeData):
+    readmeString = "{0} {1}:\n".format(
+        PR_REPOSITORY.capitalize(), get_release_markdown_link(PR_RELEASE)
+    )
+
+    for section in README_SECTIONS:
+        sectionString = ""
+        for item in readmeData:
+            sectionString += get_readme_item_text(item, section)
+        if sectionString != "":
+            readmeString += "\n{0}:\n\n{1}".format(section, sectionString)
+
+    print("##################################################")
+    print(readmeString)
+    print("##################################################")
+
+    return readmeString
+
+
+def write_to_file(contents):
+    if EXPORT_RELEASE_NOTES:
+        try:
+            os.makedirs(EXPORT_DIR)
+        except OSError:
+            pass
+        text_file = open("{0}/{1}-{2}.md".format(EXPORT_DIR,
+                                                 PR_REPOSITORY,
+                                                 PR_ISSUE_NUMBER
+                                                 ), "w")
+        text_file.write(contents)
+        text_file.close()
+    else:
+        print("Skipping write to file.")
+
+
+def update_pr(contents):
+    existingPr = ""
+    try:
+        existingPr = requests.get(
+            get_issue_url(),
+            headers={"Authorization": GITHUB_CREDENTIALS},
+        ).json()
+    except Exception:
+        print("Failed to get existing PR")
+        raise SystemExit()
+
+    prData = {}
+    labels = get_pr_labels(existingPr)
+
+    if LABEL_TO_ADD not in labels:
+        labels.append(LABEL_TO_ADD)
+        prData["labels"] = labels
+
+    if UPDATE_PR_TEXT:
+        prData["title"] = "Release {0}".format(PR_RELEASE)
+        prData["body"] = contents
+
+    if prData != {}:
+        if DRY_RUN:
+            print("DRY RUN: Create release request:")
+            print(get_issue_url())
+            print(json.dumps(prData))
+        else:
+            try:
+                updatePR = requests.patch(
+                    get_issue_url(),
+                    headers={"Authorization": GITHUB_CREDENTIALS},
+                    data=json.dumps(prData),
+                )
+
+                if LOG_RESPONSES:
+                    print("Update PR response:")
+                    print(updatePR.text)
+
+            except Exception:
+                print("Failed to update PR")
+                raise SystemExit()
+    else:
+        print("No PR changes to be made.")
+
+
+def generate_message_data(message):
+    return {
+        "channel": SLACK_CHANNEL,
+        "text": message
+    }
+
+
+def post_slack_message(data):
+    if POST_TO_SLACK:
+        try:
+            postMessage = requests.post(
+                "https://slack.com/api/chat.postMessage",
+                headers={
+                    "Authorization": 'Bearer {0}'.format(SLACK_TOKEN),
+                    "Content-Type": "application/json"
+                },
+                data=json.dumps(data),
+            )
+            print(postMessage.json())
+        except Exception:
+            print("Failed to send slack message")
+            raise SystemExit()
+    else:
+        print("Skipping post to slack.")
+
+
+def run_script():
+    create_release()
+    readmeData = generate_readme_data()
+    readmeString = generate_readme_string(readmeData)
+    write_to_file(readmeString)
+    update_pr(readmeString)
+    post_slack_message(generate_message_data(''))
+    print("Script complete.")
+
+
+# ######################################################################
+
+
+if __name__ == '__main__':
+    run_script()

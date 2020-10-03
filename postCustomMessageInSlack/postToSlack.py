@@ -3,6 +3,14 @@ import requests
 import sys
 
 
+SLACK_TOKEN = str(sys.argv[1])
+SLACK_CHANNEL = str(sys.argv[2])
+SLACK_MESSAGE = str(sys.argv[3])
+
+
+# ######################################################################
+
+
 def print_parameters():
     print("Parameters:")
     print("SLACK_TOKEN:   {0}".format(SLACK_TOKEN))
@@ -10,16 +18,16 @@ def print_parameters():
     print("SLACK_MESSAGE: {0}".format(SLACK_MESSAGE))
 
 
-def generateMessageData():
+def generate_message_data(message):
     return {
         "channel": SLACK_CHANNEL,
-        "text": "<!here> {0}".format(SLACK_MESSAGE)
+        "text": message
     }
 
 
-def postSlackMessage(data):
+def post_slack_message(data):
     try:
-        postMessage = requests.post(
+        post_message = requests.post(
             "https://slack.com/api/chat.postMessage",
             headers={
                 "Authorization": 'Bearer {0}'.format(SLACK_TOKEN),
@@ -27,23 +35,20 @@ def postSlackMessage(data):
             },
             data=json.dumps(data),
         )
-        print(postMessage.json())
+        print(post_message.json())
     except Exception:
-        print("Failed to create release")
+        print("Failed to send slack message")
         raise SystemExit()
 
 
-def runScript():
-    postSlackMessage(generateMessageData())
+def run_script():
+    data = generate_message_data("<!here> {0}".format(SLACK_MESSAGE))
+    post_slack_message(data)
     print("Script complete.")
 
 
 # ######################################################################
 
 
-SLACK_TOKEN = str(sys.argv[1])
-SLACK_CHANNEL = str(sys.argv[2])
-SLACK_MESSAGE = str(sys.argv[3])
-
 if __name__ == '__main__':
-    runScript()
+    run_script()
