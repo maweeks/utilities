@@ -64,14 +64,14 @@ def create_release():
             print(json.dumps(data))
         else:
             try:
-                createRelease = requests.post(
+                create_release = requests.post(
                     get_create_release_url(),
                     headers={"Authorization": GITHUB_CREDENTIALS},
                     data=json.dumps(data),
                 )
                 if LOG_RESPONSES:
                     print("Create release response:")
-                    print(createRelease.text)
+                    print(create_release.text)
             except Exception:
                 print("Failed to create release")
                 raise SystemExit()
@@ -195,42 +195,42 @@ def should_include_pr(pr):
 
 
 def generate_readme_data():
-    existingPrCommits = []
+    existing_pr_commits = []
     try:
-        existingPrCommits = get_pr_commits(PR_ISSUE_NUMBER)
+        existing_pr_commits = get_pr_commits(PR_ISSUE_NUMBER)
     except Exception:
         print("Failed to get main PR commits {0}".format(PR_ISSUE_NUMBER))
         raise SystemExit()
 
-    teamcityChange = False
+    teamcity_change = False
     commits = []
     prs = []
     tickets = {}
-    readmeData = []
+    readme_data = []
 
-    for commitJSON in existingPrCommits:
-        commit = commitJSON["commit"]["message"].split("\n")[0]
+    for commit_json in existing_pr_commits:
+        commit = commit_json["commit"]["message"].split("\n")[0]
         if commit.startswith("TeamCity change in"):
-            teamcityChange = True
+            teamcity_change = True
         else:
             if commit.startswith("Merge pull request #"):
-                prNumber = re.search("#[0-9]+", commit).group()
-                branch = commit[len(prNumber) + 24:]
-                prs.append([prNumber, branch])
+                pr_number = re.search("#[0-9]+", commit).group()
+                branch = commit[len(pr_number) + 24:]
+                prs.append([pr_number, branch])
             elif ((not commit.startswith("Merge remote-tracking branch"))
                   and (not commit.startswith("Merge branch "))):
                 commits.append(commit)
 
     for pr in prs:
-        prTickets = get_tickets_from_string(pr[1])
-        includePr = False
+        pr_tickets = get_tickets_from_string(pr[1])
+        include_pr = False
         try:
             prCommits = get_pr_commits(pr[0].split("#")[1])
-            includePr = should_include_pr(pr[0].split("#")[1])
+            include_pr = should_include_pr(pr[0].split("#")[1])
             for prCommit in prCommits:
                 prCommitMessage = prCommit["commit"]["message"].split("\n")[0]
-                if includePr:
-                    prTickets += get_tickets_from_string(
+                if include_pr:
+                    pr_tickets += get_tickets_from_string(
                         prCommitMessage
                     )
                 if prCommitMessage in commits:
@@ -240,41 +240,42 @@ def generate_readme_data():
                 PR_ISSUE_NUMBER))
             raise SystemExit()
 
-        if includePr:
-            if len(prTickets) == 0:
-                readmeData.append(["", [pr[0]], "Other", pr[1].split("/")[-1]])
+        if include_pr:
+            if len(pr_tickets) == 0:
+                readme_data.append(
+                    ["", [pr[0]], "Other", pr[1].split("/")[-1]])
             else:
-                add_tickets_to_tickets(prTickets, tickets, pr)
+                add_tickets_to_tickets(pr_tickets, tickets, pr)
 
     for commit in commits:
-        commitTickets = get_tickets_from_string(commit)
-        if len(commitTickets) > 0:
-            for new_ticket in commitTickets:
+        commit_tickets = get_tickets_from_string(commit)
+        if len(commit_tickets) > 0:
+            for new_ticket in commit_tickets:
                 if new_ticket not in tickets:
                     tickets[new_ticket] = []
         else:
-            readmeData.append(["", [], "Other", commit])
+            readme_data.append(["", [], "Other", commit])
 
     for ticket in tickets:
-        readmeData.append(get_ticket_details(ticket, tickets))
+        readme_data.append(get_ticket_details(ticket, tickets))
 
     #  ticket,    prs,     type,   message
     # ["OXA-123", [13, 2], "Bugs", "Message"]
-    if teamcityChange:
-        readmeData.append(["", [], "Other", "Updated TeamCity build(s)."])
+    if teamcity_change:
+        readme_data.append(["", [], "Other", "Updated TeamCity build(s)."])
 
-    readmeData.sort(key=lambda x: (x[0], x[3]))
-    return readmeData
+    readme_data.sort(key=lambda x: (x[0], x[3]))
+    return readme_data
 
 
-def generate_readme_string(readmeData):
+def generate_readme_string(readme_data):
     readmeString = "{0} {1}:\n".format(
         PR_REPOSITORY.capitalize(), get_release_markdown_link(PR_RELEASE)
     )
 
     for section in README_SECTIONS:
         sectionString = ""
-        for item in readmeData:
+        for item in readme_data:
             sectionString += get_readme_item_text(item, section)
         if sectionString != "":
             readmeString += "\n{0}:\n\n{1}".format(section, sectionString)
@@ -313,33 +314,33 @@ def update_pr(contents):
         print("Failed to get existing PR")
         raise SystemExit()
 
-    prData = {}
+    pr_data = {}
     labels = get_pr_labels(existingPr)
 
     if LABEL_TO_ADD not in labels:
         labels.append(LABEL_TO_ADD)
-        prData["labels"] = labels
+        pr_data["labels"] = labels
 
     if UPDATE_PR_TEXT:
-        prData["title"] = "Release {0}".format(PR_RELEASE)
-        prData["body"] = contents
+        pr_data["title"] = "Release {0}".format(PR_RELEASE)
+        pr_data["body"] = contents
 
-    if prData != {}:
+    if pr_data != {}:
         if DRY_RUN:
             print("DRY RUN: Create release request:")
             print(get_issue_url())
-            print(json.dumps(prData))
+            print(json.dumps(pr_data))
         else:
             try:
-                updatePR = requests.patch(
+                update_pr = requests.patch(
                     get_issue_url(),
                     headers={"Authorization": GITHUB_CREDENTIALS},
-                    data=json.dumps(prData),
+                    data=json.dumps(pr_data),
                 )
 
                 if LOG_RESPONSES:
                     print("Update PR response:")
-                    print(updatePR.text)
+                    print(update_pr.text)
 
             except Exception:
                 print("Failed to update PR")
@@ -358,15 +359,15 @@ def generate_message_data(message):
 def post_slack_message(data):
     if POST_TO_SLACK:
         try:
-            postMessage = requests.post(
-                "https://slack.com/api/chat.postMessage",
+            post_message = requests.post(
+                "https://slack.com/api/chat.post_message",
                 headers={
                     "Authorization": 'Bearer {0}'.format(SLACK_TOKEN),
                     "Content-Type": "application/json"
                 },
                 data=json.dumps(data),
             )
-            print(postMessage.json())
+            print(post_message.json())
         except Exception:
             print("Failed to send slack message")
             raise SystemExit()
@@ -376,8 +377,8 @@ def post_slack_message(data):
 
 def run_script():
     create_release()
-    readmeData = generate_readme_data()
-    readmeString = generate_readme_string(readmeData)
+    readme_data = generate_readme_data()
+    readmeString = generate_readme_string(readme_data)
     write_to_file(readmeString)
     update_pr(readmeString)
     post_slack_message(generate_message_data(''))
