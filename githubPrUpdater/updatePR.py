@@ -21,12 +21,12 @@ PR_RELEASE = str(sys.argv[3])
 DRY_RUN = "Y" == str(sys.argv[4])
 CREATE_GITHUB_RELEASE = "Y" == str(sys.argv[5])
 UPDATE_PR_TEXT = "Y" == str(sys.argv[6])
-GITHUB_CREDENTIALS = "token {0}".format(str(sys.argv[7]))
-TICKET_CREDENTIALS = (TICKET_USER, str(sys.argv[8]))
-EXPORT_RELEASE_NOTES = "Y" == str(sys.argv[9])
-EXPORT_DIR = str(sys.argv[10])
+EXPORT_RELEASE_NOTES = "Y" == str(sys.argv[7])
+POST_TO_SLACK = "Y" == str(sys.argv[8])
+GITHUB_CREDENTIALS = "token {0}".format(str(sys.argv[9]))
+TICKET_CREDENTIALS = (TICKET_USER, str(sys.argv[10]))
 SLACK_TOKEN = str(sys.argv[11])
-POST_TO_SLACK = "Y" == str(sys.argv[12])
+EXPORT_DIR = str(sys.argv[12])
 
 
 ######################################################################
@@ -118,12 +118,16 @@ def get_readme_item_text(item, section):
 
 
 def get_pr_commits(issue_number):
-    return requests.get(
-        "https://api.github.com/repos/{0}/{1}/pulls/{2}/commits?per_page=250".format(
-            DEFAULT_REPO_OWNER, PR_REPOSITORY, issue_number
-        ),
-        headers={"Authorization": GITHUB_CREDENTIALS},
-    ).json()
+    try:
+        return requests.get(
+            "https://api.github.com/repos/{0}/{1}/pulls/{2}/commits?per_page=250".format(
+                DEFAULT_REPO_OWNER, PR_REPOSITORY, issue_number
+            ),
+            headers={"Authorization": GITHUB_CREDENTIALS},
+        ).json()
+    except Exception:
+        print("Failed to get main PR commits {0}".format(PR_ISSUE_NUMBER))
+        raise SystemExit()
 
 
 def get_create_release_url():
@@ -195,12 +199,7 @@ def should_include_pr(pr):
 
 
 def generate_readme_data():
-    existing_pr_commits = []
-    try:
-        existing_pr_commits = get_pr_commits(PR_ISSUE_NUMBER)
-    except Exception:
-        print("Failed to get main PR commits {0}".format(PR_ISSUE_NUMBER))
-        raise SystemExit()
+    existing_pr_commits = get_pr_commits(PR_ISSUE_NUMBER)
 
     teamcity_change = False
     commits = []
@@ -359,19 +358,24 @@ def generate_message_data(message):
 
 def post_slack_message(data):
     if POST_TO_SLACK:
-        try:
-            post_message = requests.post(
-                "https://slack.com/api/chat.post_message",
-                headers={
-                    "Authorization": 'Bearer {0}'.format(SLACK_TOKEN),
-                    "Content-Type": "application/json"
-                },
-                data=json.dumps(data),
-            )
-            print(post_message.json())
-        except Exception:
-            print("Failed to send slack message")
-            raise SystemExit()
+        if DRY_RUN:
+            print("DRY RUN: Post slack message:")
+            print("https://slack.com/api/chat.post_message")
+            print(json.dumps(data))
+        else:
+            try:
+                post_message = requests.post(
+                    "https://slack.com/api/chat.post_message",
+                    headers={
+                        "Authorization": 'Bearer {0}'.format(SLACK_TOKEN),
+                        "Content-Type": "application/json"
+                    },
+                    data=json.dumps(data),
+                )
+                print(post_message.json())
+            except Exception:
+                print("Failed to send slack message")
+                raise SystemExit()
     else:
         print("Skipping post to slack.")
 

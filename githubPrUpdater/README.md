@@ -7,7 +7,7 @@
 
 ## How to run
 
-`python updatePR.py "test-repo" "1" "0.0.1" "Y" "Y" "Y" "GITHUB_PASS" "TICKET_PASS" "N" ""`
+`python updatePR.py "test-repo" "1" "0.0.1" "Y" "Y" "Y" "N" "N" "GITHUB_PASS" "TICKET_PASS" "SLACK" "DIR"`
 
 Command line variables:
 
@@ -17,10 +17,12 @@ Command line variables:
 4. `DRY_RUN` - `Y` to print and not send the `POST` and `PATCH` requests
 5. `CREATE_GITHUB_RELEASE` - `Y` to create a github release for the provided tag
 6. `UPDATE_PR_TEXT` - `Y` to update the title and description of the PR
-7. `GITHUB_PASSWORD` - GitHub password
-8. `TICKET_PASSWORD` - Ticket password
-9. `EXPORT_RELEASE_NOTES` - `Y` to output the release notes to a file
-10. `EXPORT_DIR` = String of directory to output to
+7. `EXPORT_RELEASE_NOTES` - `Y` to output the release notes to a file
+8. `POST_TO_SLACK` - `Y` to output the release notes to slack
+9. `GITHUB_PASSWORD` - GitHub password
+10. `TICKET_PASSWORD` - Ticket password
+11. `SLACK_TOKEN` - Slack bearer token
+12. `EXPORT_DIR` - String of directory to output to
 
 Also update lines: 8-16 in `updatePR.py` and modify `get_ticket_details` to use anything but JIRA.
 

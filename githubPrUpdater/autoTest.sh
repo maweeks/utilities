@@ -13,6 +13,7 @@ fi
 rm -f testOutput/*.md
 
 GITHUB=$1
+JIRA=$2
 OUTPUT_DIR="testOutput/"
 REPO="test-utilities"
 
@@ -36,9 +37,10 @@ REPO="test-utilities"
 prs=("56" "57" "58" "59" "60" "61" "63" "67" "69" "74" "77" "80" "83" "87" "89")
 versions=("3.0.58" "3.0.59" "3.0.60" "3.0.61" "3.0.62" "3.0.63" "3.0.64"
         "3.0.65" "3.0.66" "3.0.69" "3.0.70" "3.0.71" "3.0.72" "3.0.74" "3.0.75")
+
 for (( n=0; n<=14; n++ ))
 do
-    python updatePR.py $REPO "${prs[n]}" "${versions[n]}" "Y" "N" "N" "$GITHUB" "JIRA" "Y" "$OUTPUT_DIR" "" ""
+    python updatePR.py $REPO "${prs[n]}" "${versions[n]}" "Y" "N" "N" "Y" "N" "$GITHUB" "$JIRA" "SLACK" "$OUTPUT_DIR"
 done
 
 GIT_STATUS_2=$(git status)
