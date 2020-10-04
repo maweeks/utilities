@@ -218,6 +218,19 @@ def get_prs_from_pr(existing_pr_commits):
     return commits, prs, teamcity_change
 
 
+def get_tickets_from_pr(commits, include_pr, pr_commits, pr_tickets):
+    for pr_commit in pr_commits:
+        pr_commit_message = pr_commit["commit"]["message"].split("\n")[
+            0]
+        if include_pr:
+            pr_tickets += get_tickets_from_string(
+                pr_commit_message
+            )
+        if pr_commit_message in commits:
+            commits.remove(pr_commit_message)
+    return commits
+
+
 def get_data_from_prs(commits, prs):
     readme_data = []
     tickets = {}
@@ -227,15 +240,8 @@ def get_data_from_prs(commits, prs):
         try:
             pr_commits = get_pr_commits(pr[0].split("#")[1])
             include_pr = should_include_pr(pr[0].split("#")[1])
-            for pr_commit in pr_commits:
-                pr_commit_message = pr_commit["commit"]["message"].split("\n")[
-                    0]
-                if include_pr:
-                    pr_tickets += get_tickets_from_string(
-                        pr_commit_message
-                    )
-                if pr_commit_message in commits:
-                    commits.remove(pr_commit_message)
+            commits = get_tickets_from_pr(
+                commits, include_pr, pr_commits, pr_tickets)
         except Exception:
             print("Failed to get feature PR commits {0}".format(
                 PR_ISSUE_NUMBER))
