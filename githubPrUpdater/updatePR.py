@@ -155,6 +155,7 @@ def add_tickets_to_tickets(new_tickets, tickets, pr):
                 tickets[new_ticket].append(pr[0])
         else:
             tickets[new_ticket] = [pr[0]]
+    return tickets
 
 
 def get_ticket_details(ticket, tickets):
@@ -198,15 +199,10 @@ def should_include_pr(pr):
     )
 
 
-def generate_readme_data():
-    existing_pr_commits = get_pr_commits(PR_ISSUE_NUMBER)
-
-    teamcity_change = False
+def get_prs_from_pr(existing_pr_commits):
     commits = []
     prs = []
-    tickets = {}
-    readme_data = []
-
+    teamcity_change = False
     for commit_json in existing_pr_commits:
         commit = commit_json["commit"]["message"].split("\n")[0]
         if commit.startswith("TeamCity change in"):
@@ -219,7 +215,12 @@ def generate_readme_data():
             elif ((not commit.startswith("Merge remote-tracking branch"))
                   and (not commit.startswith("Merge branch "))):
                 commits.append(commit)
+    return commits, prs, teamcity_change
 
+
+def get_data_from_prs(commits, prs):
+    readme_data = []
+    tickets = {}
     for pr in prs:
         pr_tickets = get_tickets_from_string(pr[1])
         include_pr = False
@@ -245,8 +246,11 @@ def generate_readme_data():
                 readme_data.append(
                     ["", [pr[0]], "Other", pr[1].split("/")[-1]])
             else:
-                add_tickets_to_tickets(pr_tickets, tickets, pr)
+                tickets = add_tickets_to_tickets(pr_tickets, tickets, pr)
+    return commits, readme_data, tickets
 
+
+def get_data_from_commits(commits, readme_data, tickets):
     for commit in commits:
         commit_tickets = get_tickets_from_string(commit)
         if len(commit_tickets) > 0:
@@ -255,12 +259,19 @@ def generate_readme_data():
                     tickets[new_ticket] = []
         else:
             readme_data.append(["", [], "Other", commit])
+    return readme_data, tickets
+
+
+def generate_readme_data():
+    existing_pr_commits = get_pr_commits(PR_ISSUE_NUMBER)
+    commits, prs, teamcity_change = get_prs_from_pr(existing_pr_commits)
+    commits, readme_data, tickets = get_data_from_prs(commits, prs)
+    readme_data, tickets = get_data_from_commits(
+        commits, readme_data, tickets)
 
     for ticket in tickets:
         readme_data.append(get_ticket_details(ticket, tickets))
 
-    #  ticket,    prs,     type,   message
-    # ["OXA-123", [13, 2], "Bugs", "Message"]
     if teamcity_change:
         readme_data.append(["", [], "Other", "Updated TeamCity build(s)."])
 
@@ -381,6 +392,7 @@ def post_slack_message(data):
 
 
 def run_script():
+    print('--------------------------------------------------')
     create_release()
     readme_data = generate_readme_data()
     readme_string = generate_readme_string(readme_data)
@@ -388,9 +400,10 @@ def run_script():
     update_pr(readme_string)
     post_slack_message(generate_message_data(''))
     print("Script complete.")
+    print('--------------------------------------------------')
 
 
-# ######################################################################
+######################################################################
 
 
 if __name__ == '__main__':
