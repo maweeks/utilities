@@ -228,7 +228,7 @@ def get_tickets_from_pr(commits, include_pr, pr_commits, pr_tickets):
             )
         if pr_commit_message in commits:
             commits.remove(pr_commit_message)
-    return commits
+    return commits, pr_tickets
 
 
 def get_data_from_prs(commits, prs):
@@ -240,7 +240,7 @@ def get_data_from_prs(commits, prs):
         try:
             pr_commits = get_pr_commits(pr[0].split("#")[1])
             include_pr = should_include_pr(pr[0].split("#")[1])
-            commits = get_tickets_from_pr(
+            commits, pr_tickets = get_tickets_from_pr(
                 commits, include_pr, pr_commits, pr_tickets)
         except Exception:
             print("Failed to get feature PR commits {0}".format(
