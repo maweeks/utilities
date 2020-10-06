@@ -14,6 +14,7 @@ CODE_REGEX = "|".join(code + "-[0-9]+" for code in CODE_PREFIXES)
 NOTES_SECTIONS = ["Features", "Fixes", "Tickets", "Other"]
 LOG_RESPONSES = False
 SLACK_CHANNEL = "#general"
+OUTPUT_LINE_BREAK = "##################################################"
 
 PR_REPOSITORY = str(sys.argv[1])
 PR_ISSUE_NUMBER = str(sys.argv[2])
@@ -337,11 +338,11 @@ def generate_notes_strings(notes_data):
             notes_md += "\n{0}:\n\n{1}".format(section, section_md)
             notes_slack += "\n{0}:\n\n{1}".format(section, section_slack)
 
-    print("##################################################")
+    print(OUTPUT_LINE_BREAK)
     print(notes_md)
-    print("##################################################")
+    print(OUTPUT_LINE_BREAK)
     print(notes_slack)
-    print("##################################################")
+    print(OUTPUT_LINE_BREAK)
 
     return notes_md, notes_slack
 
