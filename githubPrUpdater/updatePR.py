@@ -325,7 +325,8 @@ def get_notes_heading(link):
 
 def generate_notes_strings(notes_data):
     notes_md = get_notes_heading(get_release_markdown_link(PR_RELEASE))
-    notes_slack = get_notes_heading(get_release_slack_link(PR_RELEASE))
+    notes_slack = "<!here> " + \
+        get_notes_heading(get_release_slack_link(PR_RELEASE))
 
     for section in NOTES_SECTIONS:
         section_md = ""
