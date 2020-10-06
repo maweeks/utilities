@@ -11,7 +11,7 @@ TICKET_BASE_URL = "https://bob.atlassian.net/"
 TICKET_USER = "matthew.weeks"
 CODE_PREFIXES = ["ASDF", "QWER", "ZXCV"]
 CODE_REGEX = "|".join(code + "-[0-9]+" for code in CODE_PREFIXES)
-README_SECTIONS = ["Features", "Fixes", "Tickets", "Other"]
+NOTES_SECTIONS = ["Features", "Fixes", "Tickets", "Other"]
 LOG_RESPONSES = False
 SLACK_CHANNEL = "#general"
 
@@ -89,32 +89,65 @@ def get_ticket_content_url(ticket):
     )
 
 
-def get_release_markdown_link(release):
-    return "release [{0}](https://github.com/{1}/{2}/pull/{3})".format(
-        release, DEFAULT_REPO_OWNER, PR_REPOSITORY, PR_ISSUE_NUMBER
+def get_github_pr_url(pr_number):
+    return "https://github.com/{0}/{1}/pull/{2}".format(
+        DEFAULT_REPO_OWNER, PR_REPOSITORY, pr_number
     )
+
+
+def get_release_markdown_link(release):
+    return "release [{0}]({1})".format(
+        release, get_github_pr_url(PR_ISSUE_NUMBER)
+    )
+
+
+def get_release_slack_link(release):
+    return "release <{1}|{0}>".format(
+        release, get_github_pr_url(PR_ISSUE_NUMBER)
+    )
+
+
+def get_slack_pr_link(pr):
+    return '<{1}|{0}>'.format(pr, get_github_pr_url(pr.replace('#', '')))
 
 
 def get_ticket_markdown_link(ticket):
     return "[{0}]({1}browse/{0}) ".format(ticket, TICKET_BASE_URL)
 
 
-def get_readme_item_text(item, section):
-    item_string = ""
+def get_ticket_slack_link(ticket):
+    return "<{1}browse/{0}|{0}> ".format(ticket, TICKET_BASE_URL)
+
+
+def get_notes_item_text(item, section):
+    item_md = ""
+    item_slack = ""
     if item[2] == section:
         if len(item[1]) > 0:
             item[1].sort()
-            item[1] = ["{0}".format(str(pr)) for pr in item[1]]
-            item_string += str(item[1]).replace("'", "") + " "
+            item_md = ["{0}".format(str(pr)) for pr in item[1]]
+            item_md = str(item_md).replace("'", "") + " "
+            item_slack = [
+                "{0}".format(get_slack_pr_link(str(pr)))
+                for pr in item[1]
+            ]
+            item_slack = str(item_slack).replace("'", "") + " "
         if len(item[0]) > 0:
-            item_string = get_ticket_markdown_link(item[0]) + item_string
-        if item_string != "":
-            item_string = "- " + item_string
+            item_md = get_ticket_markdown_link(item[0]) + item_md
+            item_slack = get_ticket_slack_link(item[0]) + item_slack
+        if item_md != "":
+            item_md = "- " + item_md
+            item_slack = "- " + item_slack
         if item[3] != "":
-            item_string += "- {0}".format(item[3])
-        if len(item_string) > 0:
-            item_string = item_string.strip() + "\n"
-    return item_string
+            item_md += "- {0}".format(item[3])
+            item_slack += "- {0}".format(item[3]
+                                         .replace('&', '&amp;')
+                                         .replace('<', '&lt;')
+                                         .replace('>', '&gt;'))
+        if len(item_md) > 0:
+            item_md = item_md.strip() + "\n"
+            item_slack = item_slack.strip() + "\n"
+    return item_md, item_slack
 
 
 def get_pr_commits(issue_number):
@@ -232,7 +265,7 @@ def get_tickets_from_pr(commits, include_pr, pr_commits, pr_tickets):
 
 
 def get_data_from_prs(commits, prs):
-    readme_data = []
+    notes_data = []
     tickets = {}
     for pr in prs:
         pr_tickets = get_tickets_from_string(pr[1])
@@ -249,14 +282,14 @@ def get_data_from_prs(commits, prs):
 
         if include_pr:
             if len(pr_tickets) == 0:
-                readme_data.append(
+                notes_data.append(
                     ["", [pr[0]], "Other", pr[1].split("/")[-1]])
             else:
                 tickets = add_tickets_to_tickets(pr_tickets, tickets, pr)
-    return commits, readme_data, tickets
+    return commits, notes_data, tickets
 
 
-def get_data_from_commits(commits, readme_data, tickets):
+def get_data_from_commits(commits, notes_data, tickets):
     for commit in commits:
         commit_tickets = get_tickets_from_string(commit)
         if len(commit_tickets) > 0:
@@ -264,56 +297,66 @@ def get_data_from_commits(commits, readme_data, tickets):
                 if new_ticket not in tickets:
                     tickets[new_ticket] = []
         else:
-            readme_data.append(["", [], "Other", commit])
-    return readme_data, tickets
+            notes_data.append(["", [], "Other", commit])
+    return notes_data, tickets
 
 
-def generate_readme_data():
+def generate_notes_data():
     existing_pr_commits = get_pr_commits(PR_ISSUE_NUMBER)
     commits, prs, teamcity_change = get_prs_from_pr(existing_pr_commits)
-    commits, readme_data, tickets = get_data_from_prs(commits, prs)
-    readme_data, tickets = get_data_from_commits(
-        commits, readme_data, tickets)
+    commits, notes_data, tickets = get_data_from_prs(commits, prs)
+    notes_data, tickets = get_data_from_commits(
+        commits, notes_data, tickets)
 
     for ticket in tickets:
-        readme_data.append(get_ticket_details(ticket, tickets))
+        notes_data.append(get_ticket_details(ticket, tickets))
 
     if teamcity_change:
-        readme_data.append(["", [], "Other", "Updated TeamCity build(s)."])
+        notes_data.append(["", [], "Other", "Updated TeamCity build(s)."])
 
-    readme_data.sort(key=lambda x: (x[0], x[3]))
-    return readme_data
+    notes_data.sort(key=lambda x: (x[0], x[3]))
+    return notes_data
 
 
-def generate_readme_string(readme_data):
-    readme_string = "{0} {1}:\n".format(
-        PR_REPOSITORY.capitalize(), get_release_markdown_link(PR_RELEASE)
-    )
+def get_notes_heading(link):
+    return "{0} {1}:\n".format(PR_REPOSITORY.capitalize(), link)
 
-    for section in README_SECTIONS:
-        section_string = ""
-        for item in readme_data:
-            section_string += get_readme_item_text(item, section)
-        if section_string != "":
-            readme_string += "\n{0}:\n\n{1}".format(section, section_string)
+
+def generate_notes_strings(notes_data):
+    notes_md = get_notes_heading(get_release_markdown_link(PR_RELEASE))
+    notes_slack = get_notes_heading(get_release_slack_link(PR_RELEASE))
+
+    for section in NOTES_SECTIONS:
+        section_md = ""
+        section_slack = ""
+        for item in notes_data:
+            item_md, item_slack = get_notes_item_text(item, section)
+            section_md += item_md
+            section_slack += item_slack
+        if section_md != "":
+            notes_md += "\n{0}:\n\n{1}".format(section, section_md)
+            notes_slack += "\n{0}:\n\n{1}".format(section, section_slack)
 
     print("##################################################")
-    print(readme_string)
+    print(notes_md)
+    print("##################################################")
+    print(notes_slack)
     print("##################################################")
 
-    return readme_string
+    return notes_md, notes_slack
 
 
-def write_to_file(contents):
+def write_to_file(contents, file_extension):
     if EXPORT_RELEASE_NOTES:
         try:
             os.makedirs(EXPORT_DIR)
         except OSError:
             pass
-        text_file = open("{0}/{1}-{2}.md".format(EXPORT_DIR,
-                                                 PR_REPOSITORY,
-                                                 PR_ISSUE_NUMBER
-                                                 ), "w")
+        text_file = open("{0}/{1}-{2}.{3}".format(EXPORT_DIR,
+                                                  PR_REPOSITORY,
+                                                  PR_ISSUE_NUMBER,
+                                                  file_extension
+                                                  ), "w")
         text_file.write(contents)
         text_file.close()
     else:
@@ -382,7 +425,7 @@ def post_slack_message(data):
         else:
             try:
                 post_message = requests.post(
-                    "https://slack.com/api/chat.post_message",
+                    "https://slack.com/api/chat.postMessage",
                     headers={
                         "Authorization": 'Bearer {0}'.format(SLACK_TOKEN),
                         "Content-Type": "application/json"
@@ -400,11 +443,13 @@ def post_slack_message(data):
 def run_script():
     print('--------------------------------------------------')
     create_release()
-    readme_data = generate_readme_data()
-    readme_string = generate_readme_string(readme_data)
-    write_to_file(readme_string)
-    update_pr(readme_string)
-    post_slack_message(generate_message_data(''))
+    notes_data = generate_notes_data()
+    notes_markdown_string, notes_slack_string = generate_notes_strings(
+        notes_data)
+    write_to_file(notes_markdown_string, 'md')
+    write_to_file(notes_slack_string, 'txt')
+    update_pr(notes_markdown_string)
+    post_slack_message(generate_message_data(notes_slack_string))
     print("Script complete.")
     print('--------------------------------------------------')
 

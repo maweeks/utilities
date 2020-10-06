@@ -1,0 +1,11 @@
+Test-utilities release <https://github.com/maweeks/test-utilities/pull/87|3.0.74>:
+
+Tickets:
+
+- <https://bob.atlassian.net/browse/ASDF-123|ASDF-123> [<https://github.com/maweeks/test-utilities/pull/84|#84>, <https://github.com/maweeks/test-utilities/pull/85|#85>]
+- <https://bob.atlassian.net/browse/ASDF-124|ASDF-124> [<https://github.com/maweeks/test-utilities/pull/85|#85>]
+- <https://bob.atlassian.net/browse/ASDF-321|ASDF-321> [<https://github.com/maweeks/test-utilities/pull/85|#85>]
+- <https://bob.atlassian.net/browse/QWER-123|QWER-123> [<https://github.com/maweeks/test-utilities/pull/84|#84>]
+- <https://bob.atlassian.net/browse/QWER-135|QWER-135> [<https://github.com/maweeks/test-utilities/pull/84|#84>]
+- <https://bob.atlassian.net/browse/QWER-333|QWER-333> [<https://github.com/maweeks/test-utilities/pull/86|#86>]
+- <https://bob.atlassian.net/browse/ZXCV-123|ZXCV-123> [<https://github.com/maweeks/test-utilities/pull/85|#85>]

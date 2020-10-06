@@ -1,0 +1,7 @@
+Test-utilities release <https://github.com/maweeks/test-utilities/pull/80|3.0.71>:
+
+Tickets:
+
+- <https://bob.atlassian.net/browse/QWER-123|QWER-123> [<https://github.com/maweeks/test-utilities/pull/79|#79>]
+- <https://bob.atlassian.net/browse/QWER-234|QWER-234> [<https://github.com/maweeks/test-utilities/pull/79|#79>]
+- <https://bob.atlassian.net/browse/ZXCV-123|ZXCV-123> [<https://github.com/maweeks/test-utilities/pull/78|#78>]
