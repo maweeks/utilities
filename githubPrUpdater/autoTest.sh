@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 GIT_STATUS=""
-if [[ $(git diff) ]] ; then
+OUTPUT_DIR="testOutput/"
+
+if [[ $(git diff "$OUTPUT_DIR") ]] ; then
     echo "Clear git diff before running."
     exit 1
 else
@@ -14,7 +16,6 @@ rm -f testOutput/*.md
 
 GITHUB=$1
 JIRA=$2
-OUTPUT_DIR="testOutput/"
 REPO="test-utilities"
 
 # 56: Commit on develop.
