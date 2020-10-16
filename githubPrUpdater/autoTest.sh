@@ -12,7 +12,7 @@ else
     echo "${GIT_STATUS}"
 fi
 
-rm -f testOutput/*.md
+rm -f testOutput/*.md testOutput/*.txt
 
 GITHUB=$1
 JIRA=$2
