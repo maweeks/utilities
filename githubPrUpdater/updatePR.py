@@ -110,7 +110,11 @@ def get_release_slack_link(release):
     )
 
 
-def get_slack_pr_link(pr):
+def get_pr_markdown_link(pr):
+    return '[{0}]({1})'.format(pr, get_github_pr_url(pr.replace('#', '')))
+
+
+def get_pr_slack_link(pr):
     return '<{1}|{0}>'.format(pr, get_github_pr_url(pr.replace('#', '')))
 
 
@@ -128,10 +132,11 @@ def get_notes_item_text(item, section):
     if item[2] == section:
         if len(item[1]) > 0:
             item[1].sort()
-            item_md = ["{0}".format(str(pr)) for pr in item[1]]
+            item_md = ["{0}".format(get_pr_markdown_link(str(pr)))
+                       for pr in item[1]]
             item_md = str(item_md).replace("'", "") + " "
             item_slack = [
-                "{0}".format(get_slack_pr_link(str(pr)))
+                "{0}".format(get_pr_slack_link(str(pr)))
                 for pr in item[1]
             ]
             item_slack = str(item_slack).replace("'", "") + " "
