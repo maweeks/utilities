@@ -7,7 +7,7 @@
 
 ## How to run
 
-`python updatePR.py "test-repo" "1" "0.0.1" "Y" "Y" "Y" "N" "N" "GITHUB_PASS" "TICKET_PASS" "SLACK" "DIR"`
+`python updatePR.py "test-repo" "1" "0.0.1" "Y" "Y" "Y" "Y" "N" "N" "GITHUB_PASS" "TICKET_PASS" "SLACK" "DIR"`
 
 Command line variables:
 
@@ -15,16 +15,17 @@ Command line variables:
 2. `PR_ISSUE_NUMBER` - GitHub repository PR number
 3. `PR_RELEASE` - Git tag of the release
 4. `DRY_RUN` - `Y` to print and not send the `POST` and `PATCH` requests
-5. `CREATE_GITHUB_RELEASE` - `Y` to create a github release for the provided tag
-6. `UPDATE_PR_TEXT` - `Y` to update the title and description of the PR
-7. `EXPORT_RELEASE_NOTES` - `Y` to output the release notes to a file
-8. `POST_TO_SLACK` - `Y` to output the release notes to slack
-9. `GITHUB_PASSWORD` - GitHub password
-10. `TICKET_PASSWORD` - Ticket password
-11. `SLACK_TOKEN` - Slack bearer token
-12. `EXPORT_DIR` - String of directory to output to
+5. `INCLUDE_DATE_GENERATED` - `Y` to include date generated in release notes in the format `YYYY-MM-DD`
+6. `CREATE_GITHUB_RELEASE` - `Y` to create a github release for the provided tag
+7. `UPDATE_PR_TEXT` - `Y` to update the title and description of the PR
+8. `EXPORT_RELEASE_NOTES` - `Y` to output the release notes to a file
+9. `POST_TO_SLACK` - `Y` to output the release notes to slack
+10. `GITHUB_PASSWORD` - GitHub password
+11. `TICKET_PASSWORD` - Ticket password
+12. `SLACK_TOKEN` - Slack bearer token
+13. `EXPORT_DIR` - String of directory to output to
 
-Also update lines: 8-16 in `updatePR.py` and modify `get_ticket_details` to use anything but JIRA.
+Also update lines: 9-17 in `updatePR.py` and modify `get_ticket_details` to use anything but JIRA.
 
 ## How to run the E2E tests
 
@@ -36,7 +37,7 @@ Command line variables:
 1. `GITHUB_PASSWORD` - GitHub password
 2. `TICKET_PASSWORD` - Ticket password
 
-### How it worksish
+### How it works-ish
 
 #### updatePR.py
 

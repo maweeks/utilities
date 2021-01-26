@@ -41,7 +41,7 @@ versions=("3.0.58" "3.0.59" "3.0.60" "3.0.61" "3.0.62" "3.0.63" "3.0.64"
 
 for (( n=0; n<=14; n++ ))
 do
-    python updatePR.py $REPO "${prs[n]}" "${versions[n]}" "Y" "N" "N" "Y" "N" "$GITHUB" "$JIRA" "SLACK" "$OUTPUT_DIR"
+    python updatePR.py $REPO "${prs[n]}" "${versions[n]}" "Y" "N" "N" "N" "Y" "N" "$GITHUB" "$JIRA" "SLACK" "$OUTPUT_DIR"
 done
 
 GIT_STATUS_2=$(git status)

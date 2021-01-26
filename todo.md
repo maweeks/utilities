@@ -1,7 +1,6 @@
 # To do
 
-1. Refactor updatePr.py
-2. Test
-3. Add `postToSlack.py`
-4. Check escape messages is required
-5. Escape messages
+1. Refactor updatePr.py parameters
+2. Add proper link to markdown for prs
+3. Check escape messages is required
+4. Escape messages

@@ -1,3 +1,4 @@
+from datetime import date
 import json
 import os
 import re
@@ -20,14 +21,15 @@ PR_REPOSITORY = str(sys.argv[1])
 PR_ISSUE_NUMBER = str(sys.argv[2])
 PR_RELEASE = str(sys.argv[3])
 DRY_RUN = "Y" == str(sys.argv[4])
-CREATE_GITHUB_RELEASE = "Y" == str(sys.argv[5])
-UPDATE_PR_TEXT = "Y" == str(sys.argv[6])
-EXPORT_RELEASE_NOTES = "Y" == str(sys.argv[7])
-POST_TO_SLACK = "Y" == str(sys.argv[8])
-GITHUB_CREDENTIALS = "token {0}".format(str(sys.argv[9]))
-TICKET_CREDENTIALS = (TICKET_USER, str(sys.argv[10]))
-SLACK_TOKEN = str(sys.argv[11])
-EXPORT_DIR = str(sys.argv[12])
+INCLUDE_DATE_GENERATED = "Y" == str(sys.argv[5])
+CREATE_GITHUB_RELEASE = "Y" == str(sys.argv[6])
+UPDATE_PR_TEXT = "Y" == str(sys.argv[7])
+EXPORT_RELEASE_NOTES = "Y" == str(sys.argv[8])
+POST_TO_SLACK = "Y" == str(sys.argv[9])
+GITHUB_CREDENTIALS = "token {0}".format(str(sys.argv[10]))
+TICKET_CREDENTIALS = (TICKET_USER, str(sys.argv[11]))
+SLACK_TOKEN = str(sys.argv[12])
+EXPORT_DIR = str(sys.argv[13])
 
 
 ######################################################################
@@ -327,6 +329,11 @@ def generate_notes_strings(notes_data):
     notes_md = get_notes_heading(get_release_markdown_link(PR_RELEASE))
     notes_slack = "<!here> " + \
         get_notes_heading(get_release_slack_link(PR_RELEASE))
+
+    if INCLUDE_DATE_GENERATED:
+        date_string = date.today().strftime("%Y-%m-%d")
+        notes_md += "\nRelease generated: {0}\n".format(date_string)
+        notes_slack += "\nRelease generated: {0}\n".format(date_string)
 
     for section in NOTES_SECTIONS:
         section_md = ""
