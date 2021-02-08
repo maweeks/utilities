@@ -1,3 +1,5 @@
+.PHONY: help prepareDevelop increment release releaseMajor releaseMinor releasePatch allMajor allMinor allPatch
+
 help:          ## Show this help.
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
 
