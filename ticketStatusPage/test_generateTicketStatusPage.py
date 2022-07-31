@@ -1,3 +1,4 @@
+import configSecret as cs
 import generateTicketStatusPage as gtsp
 
 
@@ -43,3 +44,22 @@ def test_get_ticket_status_icons_without_status_not_blocked():
 
 def test_get_ticket_status_icons_without_status_blocked():
     assert "❔⛔" == gtsp.get_ticket_status_icons({"blocked": True})
+
+
+def test_get_tickets_content():
+    expected = """## Tickets
+
+### Critical path
+
+❔ [ABC-123](https://testBase.atlassian.net/browse/ABC-123) - Ticket 1
+❔ ABC-_____ - Ticket 2
+
+### Non critical path
+
+❔ ABC-_____ - Ticket 3
+
+### To be sorted
+
+None
+"""
+    assert expected == gtsp.get_tickets_content(cs.ticket_groupings)

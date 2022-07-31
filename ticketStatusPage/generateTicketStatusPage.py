@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
-import authSecret as auth
+
+from authSecret import jira
 import configSecret as config
 
 
