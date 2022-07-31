@@ -2,7 +2,7 @@
 
 [Current page](https://abc.atlassian.net/wiki/spaces/)
 
-Updated at: 31/07/2022 04:25:19
+Updated at: 31/07/2022 05:10:11
 
 This is a general overview for what’s required for each stage - Jira is source of truth for individual ticket status. @Matt Weeks will update this page every so often.
 
@@ -19,16 +19,21 @@ ABC-_____ - No ticket created yet
 **Example:**
 ❔ [ABC-](https://abc.atlassian.net/browse/ABC-) - Description
 
-**Tickets**
-**Critical path:**
+## Tickets
+
+### Critical path
+
 ❔ [ABC-123](https://abc.atlassian.net/browse/ABC-123) - Ticket 1
 ❔ ABC-_____ - Ticket 2
 
-**Non critical path:**
+### Non critical path
+
 ❔ ABC-_____ - Ticket 3
 
-**To be sorted:**
+### To be sorted
+
 None
 
-**Extra tickets in epic:**
+### Extra tickets in epic
+
 None

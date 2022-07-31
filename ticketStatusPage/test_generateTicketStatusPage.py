@@ -1,8 +1,8 @@
 import generateTicketStatusPage as gtsp
 
 
-def test_intro_content():
-    assert gtsp.intro_content()[:12] == "# Test title"
+def test_get_intro_content():
+    assert gtsp.get_intro_content()[:12] == "# Test title"
 
 
 def test_get_ticket_data():
@@ -10,36 +10,36 @@ def test_get_ticket_data():
     assert expected == gtsp.get_ticket_data([])
 
 
-def test_getTicketLink_without_ticket_code():
-    assert "ABC-_____" == gtsp.getTicketLink({})
+def test_get_ticket_link_without_ticket_code():
+    assert "ABC-_____" == gtsp.get_ticket_link({})
 
 
-def test_getTicketLink_with_ticket_code():
-    assert "[ABC-123](https://testBase.atlassian.net/browse/ABC-123)" == gtsp.getTicketLink(
+def test_get_ticket_link_with_ticket_code():
+    assert "[ABC-123](https://testBase.atlassian.net/browse/ABC-123)" == gtsp.get_ticket_link(
         {"code": "ABC-123"})
 
 
-def test_getTicketStatusIcons_with_status_not_blocked():
-    assert "✅" == gtsp.getTicketStatusIcons({"status": "done"})
-    assert "🟣" == gtsp.getTicketStatusIcons({"status": "test"})
-    assert "🟡" == gtsp.getTicketStatusIcons({"status": "ready"})
-    assert "📝" == gtsp.getTicketStatusIcons({"status": "design"})
+def test_get_ticket_status_icons_with_status_not_blocked():
+    assert "✅" == gtsp.get_ticket_status_icons({"status": "done"})
+    assert "🟣" == gtsp.get_ticket_status_icons({"status": "test"})
+    assert "🟡" == gtsp.get_ticket_status_icons({"status": "ready"})
+    assert "📝" == gtsp.get_ticket_status_icons({"status": "design"})
 
 
-def test_getTicketStatusIcons_with_status_blocked():
-    assert "✅⛔" == gtsp.getTicketStatusIcons(
+def test_get_ticket_status_icons_with_status_blocked():
+    assert "✅⛔" == gtsp.get_ticket_status_icons(
         {"status": "done", "blocked": True})
-    assert "🟣⛔" == gtsp.getTicketStatusIcons(
+    assert "🟣⛔" == gtsp.get_ticket_status_icons(
         {"status": "test", "blocked": True})
-    assert "🟡⛔" == gtsp.getTicketStatusIcons(
+    assert "🟡⛔" == gtsp.get_ticket_status_icons(
         {"status": "ready", "blocked": True})
-    assert "📝⛔" == gtsp.getTicketStatusIcons(
+    assert "📝⛔" == gtsp.get_ticket_status_icons(
         {"status": "design", "blocked": True})
 
 
-def test_getTicketStatusIcons_without_status_not_blocked():
-    assert "❔" == gtsp.getTicketStatusIcons({})
+def test_get_ticket_status_icons_without_status_not_blocked():
+    assert "❔" == gtsp.get_ticket_status_icons({})
 
 
-def test_getTicketStatusIcons_without_status_blocked():
-    assert "❔⛔" == gtsp.getTicketStatusIcons({"blocked": True})
+def test_get_ticket_status_icons_without_status_blocked():
+    assert "❔⛔" == gtsp.get_ticket_status_icons({"blocked": True})

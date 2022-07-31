@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 title = "Random tickets"
-fileName = "ticketStatusOutput.md"
-documentLink = "https://abc.atlassian.net/wiki/spaces/"
-jiraBaseUrl = "https://abc.atlassian.net/"
+file_name = "ticketStatusOutput.md"
+document_link = "https://abc.atlassian.net/wiki/spaces/"
+jira_base_url = "https://abc.atlassian.net/"
 author = "Matt Weeks"
 icons = {
     "done": "✅",
@@ -13,8 +13,8 @@ icons = {
     "design": "📝",
     "unknown": "❔"
 }
-defaultTicketCode = "ABC"
-ticketGroupings = [
+default_ticket_code = "ABC"
+ticket_groupings = [
     {
         "title": "Critical path",
         "tickets": [

@@ -5,9 +5,9 @@ import authSecret as auth
 import configSecret as config
 
 
-def intro_content():
+def get_intro_content():
     return f"# {config.title}\n\n\
-[Current page]({config.documentLink})\n\n\
+[Current page]({config.document_link})\n\n\
 Updated at: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n\
 This is a general overview for what’s required for each stage - Jira is source of truth for individual ticket status. @Matt Weeks will update this page every so often.\n\n\
 ## Key\n\n\
@@ -17,56 +17,54 @@ This is a general overview for what’s required for each stage - Jira is source
 {config.icons['blocked']} Defined/started but blocked from progress\n\
 {config.icons['design']} Not ready to pick up / not yet defined\n\
 {config.icons['unknown']} Status unknown 😨\n\
-{config.defaultTicketCode}-_____ - No ticket created yet\n\
+{config.default_ticket_code}-_____ - No ticket created yet\n\
 \n\
 **Example:**\n\
-{config.icons['unknown']} [{config.defaultTicketCode}-]({config.jiraBaseUrl}browse/{config.defaultTicketCode}-) - Description\n\n"
+{config.icons['unknown']} [{config.default_ticket_code}-]({config.jira_base_url}browse/{config.default_ticket_code}-) - Description\n\n"
 
 
 def get_ticket_data(data):
-    processedData = data
-    processedData += [{"title": "Extra tickets in epic", "tickets": []}]
-    return processedData
+    processed_data = data
+    processed_data += [{"title": "Extra tickets in epic", "tickets": []}]
+    return processed_data
 
 
-def getTicketLink(ticket):
+def get_ticket_link(ticket):
     if 'code' in ticket:
-        return f"[{ticket['code']}]({config.jiraBaseUrl}browse/{ticket['code']})"
+        return f"[{ticket['code']}]({config.jira_base_url}browse/{ticket['code']})"
     else:
-        return f"{config.defaultTicketCode}-_____"
+        return f"{config.default_ticket_code}-_____"
 
 
-def getTicketStatusIcons(ticket):
-    iconString = ""
+def get_ticket_status_icons(ticket):
+    icon_string = ""
     if ("status" in ticket) and (ticket['status'] in ['done', 'test', 'ready', 'design']):
-        iconString += config.icons[ticket['status']]
+        icon_string += config.icons[ticket['status']]
     else:
-        iconString += f"{config.icons['unknown']}"
+        icon_string += f"{config.icons['unknown']}"
     if "blocked" in ticket and ticket['blocked']:
-        iconString += config.icons['blocked']
-    return iconString
+        icon_string += config.icons['blocked']
+    return icon_string
 
 
-def ticketsContent(data):
-    # output = "## Tickets\n"
-    output = "**Tickets**"
+def get_tickets_content(data):
+    output = "## Tickets\n"
     for group in data:
-        # output += f"\n## {group['title']}\n\n"
-        output += f"\n**{group['title']}:**\n"
+        output += f"\n### {group['title']}\n\n"
         if len(group['tickets']) > 0:
             for ticket in group['tickets']:
-                output += f"{config.getTicketStatusconfig.icons(ticket)} {getTicketLink(ticket)} - {ticket['title']}\n"
+                output += f"{get_ticket_status_icons(ticket)} {get_ticket_link(ticket)} - {ticket['title']}\n"
         else:
             output += "None\n"
     return output
 
 
-def generateOutput(data):
-    return intro_content() + ticketsContent(data)
+def generate_output(data):
+    return get_intro_content() + get_tickets_content(data)
 
 
-def outputToFile(output):
-    text_file = open(config.fileName, "w")
+def output_to_file(output):
+    text_file = open(config.file_name, "w")
     text_file.write(output)
     text_file.close()
 
@@ -74,12 +72,11 @@ def outputToFile(output):
 def main():
     print('Running generate ticket status:')
     print('Getting ticket statuses...')
-    processedData = get_ticket_data(config.ticketGroupings)
+    processed_data = get_ticket_data(config.ticket_groupings)
     print('Generating ticket status output...')
-    output = generateOutput(processedData)
+    output = generate_output(processed_data)
     print('Saving ticket status output to file...')
-    outputToFile(output)
-    # print('Uploading ticket status to confluence...')?
+    output_to_file(output)
     print('Generate ticket status complete!')
 
 

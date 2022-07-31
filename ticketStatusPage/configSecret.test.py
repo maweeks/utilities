@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 title = "Test title"
-fileName = "testStatusFile.md"
-documentLink = "https://testDoc.atlassian.net/wiki/spaces/testFile"
-jiraBaseUrl = "https://testBase.atlassian.net/"
+file_name = "testStatusFile.md"
+document_link = "https://testDoc.atlassian.net/wiki/spaces/testFile"
+jira_base_url = "https://testBase.atlassian.net/"
 author = "Matt Weeks"
 icons = {
     "done": "✅",
@@ -13,8 +13,8 @@ icons = {
     "design": "📝",
     "unknown": "❔"
 }
-defaultTicketCode = "ABC"
-ticketGroupings = [
+default_ticket_code = "ABC"
+ticket_groupings = [
     {
         "title": "Critical path",
         "tickets": [
