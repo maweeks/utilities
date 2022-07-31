@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
-from datetime import datetime
+import datetime
 
 from auth_secret import jira
 import config_secret as config
 
 
 def get_intro_content():
+    now = datetime.datetime.now()
     return f"# {config.title}\n\n\
 [Current page]({config.document_link})\n\n\
-Updated at: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n\
+Updated at: {now.strftime('%d/%m/%Y %H:%M:%S')}\n\n\
 This is a general overview for what’s required for each stage - Jira is source of truth for individual ticket status. @Matt Weeks will update this page every so often.\n\n\
 ## Key\n\n\
 {config.icons['done']} Done\n\

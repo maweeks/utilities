@@ -10,14 +10,4 @@ run:               ## Run the script
 	python3 generate_ticket_status_page.py
 
 test:              ## Run the tests
-	touch auth_secret.py
-	mv auth_secret.py auth_secret.temp.py
-	cp auth_secret.test.py auth_secret.py
-	touch config_secret.py
-	mv config_secret.py config_secret.temp.py
-	cp config_secret.test.py config_secret.py
 	python3 -m pytest
-
-reset-after-tests: ## Revert the config file after testing
-	mv auth_secret.temp.py auth_secret.py
-	mv config_secret.temp.py config_secret.py

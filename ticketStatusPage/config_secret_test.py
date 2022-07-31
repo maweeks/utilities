@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
 
-title = "Test title"
+title = "Test Title"
 file_name = "testStatusFile.md"
 document_link = "https://testDoc.atlassian.net/wiki/spaces/testFile"
 jira_base_url = "https://testBase.atlassian.net/"
 author = "Matt Weeks"
 icons = {
-    "done": "✅",
-    "test": "🟣",
-    "ready": "🟡",
-    "blocked": "⛔",
-    "design": "📝",
-    "unknown": "❔"
+    "done": "🚀",
+    "test": "⚙️",
+    "ready": "🥳",
+    "blocked": "🔴",
+    "design": "🔵",
+    "unknown": "🟠"
 }
-default_ticket_code = "ABC"
+default_ticket_code = "TST"
 ticket_groupings = [
     {
-        "title": "Critical path",
+        "title": "Important path",
         "tickets": [
-            {"code": "ABC-123", "title": "Ticket 1"},
+            {"code": "TST-123", "title": "Ticket 1"},
             {"title": "Ticket 2"}
         ]
     },
     {
-        "title": "Non critical path",
+        "title": "Other path",
         "tickets": [
             {"title": "Ticket 3"}
         ]
