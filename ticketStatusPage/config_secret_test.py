@@ -14,11 +14,13 @@ icons = {
     "unknown": "🟠"
 }
 default_ticket_code = "TST"
+epics = ['EPC-13']
 ticket_groupings = [
     {
         "title": "Important path",
         "tickets": [
             {"code": "TST-123", "title": "Ticket 1"},
+            {"code": "TST-314", "title": "Ticket 6"},
             {"title": "Ticket 2"}
         ]
     },

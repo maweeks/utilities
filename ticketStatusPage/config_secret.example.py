@@ -14,6 +14,7 @@ icons = {
     "unknown": "❔"
 }
 default_ticket_code = "ABC"
+epics = []
 ticket_groupings = [
     {
         "title": "Critical path",
