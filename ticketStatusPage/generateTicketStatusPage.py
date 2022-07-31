@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
-from authSecret import *
-from configSecret import *
+import authSecret as auth
+import configSecret as config
 
 
-def introContent():
-    return f"# {title}\n\n\
-[Current page]({documentLink})\n\n\
+def intro_content():
+    return f"# {config.title}\n\n\
+[Current page]({config.documentLink})\n\n\
 Updated at: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n\
 This is a general overview for what’s required for each stage - Jira is source of truth for individual ticket status. @Matt Weeks will update this page every so often.\n\n\
 ## Key\n\n\
-{icons['done']} Done\n\
-{icons['test']} In test\n\
-{icons['ready']} Ready to pick up / in progress\n\
-{icons['blocked']} Defined/started but blocked from progress\n\
-{icons['design']} Not ready to pick up / not yet defined\n\
-{icons['unknown']} Status unknown 😨\n\
-{defaultTicketCode}-_____ - No ticket created yet\n\
+{config.icons['done']} Done\n\
+{config.icons['test']} In test\n\
+{config.icons['ready']} Ready to pick up / in progress\n\
+{config.icons['blocked']} Defined/started but blocked from progress\n\
+{config.icons['design']} Not ready to pick up / not yet defined\n\
+{config.icons['unknown']} Status unknown 😨\n\
+{config.defaultTicketCode}-_____ - No ticket created yet\n\
 \n\
 **Example:**\n\
-{icons['unknown']} [{defaultTicketCode}-]({jiraBaseUrl}browse/{defaultTicketCode}-) - Description\n\n"
+{config.icons['unknown']} [{config.defaultTicketCode}-]({config.jiraBaseUrl}browse/{config.defaultTicketCode}-) - Description\n\n"
 
 
-def getTicketData(data):
+def get_ticket_data(data):
     processedData = data
     processedData += [{"title": "Extra tickets in epic", "tickets": []}]
     return processedData
@@ -31,19 +31,19 @@ def getTicketData(data):
 
 def getTicketLink(ticket):
     if 'code' in ticket:
-        return f"[{ticket['code']}]({jiraBaseUrl}browse/{ticket['code']})"
+        return f"[{ticket['code']}]({config.jiraBaseUrl}browse/{ticket['code']})"
     else:
-        return f"{defaultTicketCode}-_____"
+        return f"{config.defaultTicketCode}-_____"
 
 
 def getTicketStatusIcons(ticket):
     iconString = ""
     if ("status" in ticket) and (ticket['status'] in ['done', 'test', 'ready', 'design']):
-        iconString += icons[ticket['status']]
+        iconString += config.icons[ticket['status']]
     else:
-        iconString += f"{icons['unknown']}"
+        iconString += f"{config.icons['unknown']}"
     if "blocked" in ticket and ticket['blocked']:
-        iconString += icons['blocked']
+        iconString += config.icons['blocked']
     return iconString
 
 
@@ -55,18 +55,18 @@ def ticketsContent(data):
         output += f"\n**{group['title']}:**\n"
         if len(group['tickets']) > 0:
             for ticket in group['tickets']:
-                output += f"{getTicketStatusIcons(ticket)} {getTicketLink(ticket)} - {ticket['title']}\n"
+                output += f"{config.getTicketStatusconfig.icons(ticket)} {getTicketLink(ticket)} - {ticket['title']}\n"
         else:
             output += "None\n"
     return output
 
 
 def generateOutput(data):
-    return introContent() + ticketsContent(data)
+    return intro_content() + ticketsContent(data)
 
 
 def outputToFile(output):
-    text_file = open(fileName, "w")
+    text_file = open(config.fileName, "w")
     text_file.write(output)
     text_file.close()
 
@@ -74,7 +74,7 @@ def outputToFile(output):
 def main():
     print('Running generate ticket status:')
     print('Getting ticket statuses...')
-    processedData = getTicketData(ticketGroupings)
+    processedData = get_ticket_data(config.ticketGroupings)
     print('Generating ticket status output...')
     output = generateOutput(processedData)
     print('Saving ticket status output to file...')
