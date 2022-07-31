@@ -1,1 +1,3 @@
+.vscode
 githubPrUpdater/setCreds.sh
+*.pyc
