@@ -1,5 +1,5 @@
-import configSecret as cs
-import generateTicketStatusPage as gtsp
+import config_secret as cs
+import generate_ticket_status_page as gtsp
 
 
 def test_get_intro_content():

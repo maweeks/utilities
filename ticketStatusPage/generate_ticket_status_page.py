@@ -2,8 +2,8 @@
 
 from datetime import datetime
 
-from authSecret import jira
-import configSecret as config
+from auth_secret import jira
+import config_secret as config
 
 
 def get_intro_content():

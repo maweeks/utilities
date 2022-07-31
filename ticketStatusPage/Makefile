@@ -7,10 +7,10 @@ install:       ## Install requirements to run and test this project
 	pip3 install -r requirements.txt
 
 run:           ## Run the script
-	python3 generateTicketStatusPage.py
+	python3 generate_ticket_status_page.py
 
 test:          ## Run the tests
-	mv configSecret.py configSecret.temp.py
-	cp configSecret.test.py configSecret.py
+	mv config_secret.py config_secret.temp.py
+	cp config_secret.test.py config_secret.py
 	python3 -m pytest || true
-	mv configSecret.temp.py configSecret.py
+	mv config_secret.temp.py config_secret.py
