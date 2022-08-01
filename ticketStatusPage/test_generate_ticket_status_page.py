@@ -18,11 +18,17 @@ def test_get_ticket_api_url(monkeypatch):
     assert expected == gtsp.get_ticket_api_url('ABC-313')
 
 
-def test_call_get_epic_issues_fail():
+def test_call_get_epic_issues_fail(monkeypatch):
+    monkeypatch.setattr(gtsp.config, 'jira_base_url',
+                        cs.jira_base_url)
+    monkeypatch.setattr(gtsp, 'jira_auth', "")
     assert [] == gtsp.call_get_epic_issues(cs.epics)
 
 
-def test_call_get_ticket_fail():
+def test_call_get_ticket_fail(monkeypatch):
+    monkeypatch.setattr(gtsp.config, 'jira_base_url',
+                        cs.jira_base_url)
+    monkeypatch.setattr(gtsp, 'jira_auth', "")
     assert {} == gtsp.call_get_ticket('ABC-123')
 
 
@@ -73,13 +79,13 @@ def test_get_ticket_data_no_epics(monkeypatch):
         "tickets": [
             {"code": "TST-123", "title": "Ticket 1"},
             {"code": "TST-314", "title": "Ticket 6"},
-            {"title": "Ticket 2"}
+            {"title": "Ticket 2", "status": "design"}
         ]
     },
         {
         "title": "Other path",
         "tickets": [
-            {"title": "Ticket 3"}
+            {"title": "Ticket 3", "status": "design"}
         ]
     },
         {
@@ -123,11 +129,11 @@ def test_get_ticket_data_with_epics(monkeypatch):
             "title": "Important path",
             "tickets": [{'code': 'TST-123', 'title': 'Ticket 1', 'status': 'ready'},
                         {'code': 'TST-314', 'title': 'Ticket 6'},
-                        {'title': 'Ticket 2'}]
+                        {'title': 'Ticket 2', "status": "design"}]
         },
         {
             "title": "Other path",
-            "tickets": [{'title': 'Ticket 3'}]
+            "tickets": [{'title': 'Ticket 3', "status": "design"}]
         },
         {
             "title": "To be sorted",
@@ -146,6 +152,7 @@ def test_get_intro_content_first_few_lines(monkeypatch):
     date_time = datetime.datetime
 
     class MyDatetime():
+        @staticmethod
         def now():
             return date_time(2022, 7, 6, 5, 4, 3)
 
@@ -225,11 +232,11 @@ def test_get_tickets_content(monkeypatch):
 
 🟠 [TST-123](https://testBase.atlassian.net/browse/TST-123) - Ticket 1
 🟠 [TST-314](https://testBase.atlassian.net/browse/TST-314) - Ticket 6
-🟠 TST-_____ - Ticket 2
+🔵 TST-_____ - Ticket 2
 
 ### Other path
 
-🟠 TST-_____ - Ticket 3
+🔵 TST-_____ - Ticket 3
 
 ### To be sorted
 

@@ -56,10 +56,16 @@ def merge_ticket_details(ticket, jira_ticket):
         ticket['status'] = 'done'
     elif jira_status in ['Testing']:
         ticket['status'] = 'test'
-    elif jira_status in ['Up Next', 'UpNext', 'In Progress']:
+    elif jira_status in ['UpNext', 'In Progress']:
         ticket['status'] = 'ready'
     elif jira_status in ['Backlog']:
         ticket['status'] = 'design'
+    elif 'Up Next':
+        if ('labels' in jira_ticket['fields'] and ('OnHold' in jira_ticket['fields']['labels'])):
+            ticket['status'] = 'design'
+        else:
+            ticket['status'] = 'ready'
+
     if 'title' not in ticket:
         ticket['title'] = jira_ticket['fields']['summary']
     return ticket
@@ -82,10 +88,11 @@ def get_ticket_data(data, epic_issues):
                         merge_ticket_details(ticket, jira_ticket_details[0])]
                 else:
                     jira_ticket_details = call_get_ticket(ticket['code'])
-                    if 'summary' in jira_ticket_details:
-                        merge_ticket_details(ticket, jira_ticket_details)
+                    if 'key' in jira_ticket_details:
+                        ticket = merge_ticket_details(ticket, jira_ticket_details)
                     group_data['tickets'] += [ticket]
             else:
+                ticket['status'] = 'design'
                 group_data['tickets'] += [ticket]
         processed_data += [group_data]
 
@@ -105,7 +112,7 @@ def get_intro_content():
     return f"# {config.title}\n\n\
 [Current page]({config.document_link})\n\n\
 Updated at: {now.strftime('%d/%m/%Y %H:%M:%S')}\n\n\
-This is a general overview for what’s required for each stage - Jira is source of truth for individual ticket status. @Matt Weeks will update this page every so often.\n\n\
+This is a general overview for what’s required for each stage - Jira is source of truth for individual ticket status. @{config.author} will update this page every so often.\n\n\
 ## Key\n\n\
 {config.icons['done']} Done\n\
 {config.icons['test']} In test\n\
